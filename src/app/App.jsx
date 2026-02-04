@@ -54,7 +54,7 @@ function App() {
 	// 		reconnectDelay: 5000,
 	// 		heartbeatIncoming: 4000,
 	// 		heartbeatOutgoing: 4000,
-	// 		webSocketFactory: () => new SockJS('http://localhost:8080/ws')
+	// 		webSocketFactory: () => new SockJS('https://back.agfo.ir/ws')
 	// 	});
 	//
 	// 	client.onConnect = () => {

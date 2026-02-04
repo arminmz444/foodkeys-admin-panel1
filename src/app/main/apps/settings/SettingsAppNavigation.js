@@ -206,6 +206,14 @@ const SettingsAppNavigation = {
 	translate: "SETTINGS",
 	children: [
 		{
+			id: "apps.settings.favorites",
+			icon: "heroicons-outline:heart",
+			title: "مدیریت علاقه‌مندی‌ها",
+			type: "item",
+			url: "/apps/settings/favorites",
+			subtitle: "مدیریت شرکت‌ها، خدمات و محصولات منتخب",
+		},
+		{
 			id: "apps.settings.file-service-type-entity",
 			icon: "heroicons-outline:folder",
 			title: "تنظیمات انواع فایل ها",

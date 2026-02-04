@@ -1,7 +1,7 @@
 // src/services/excelTemplateService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/excel-templates';
+const API_URL = 'https://back.agfo.ir/api/excel-templates';
 
 export const uploadTemplate = async (file, data) => {
   const formData = new FormData();

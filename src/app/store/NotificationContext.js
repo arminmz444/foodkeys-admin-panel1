@@ -41,7 +41,7 @@ export const NotificationProvider = ({ children }) => {
    * Connect to WebSocket and set up notification handlers
    */
   const connectWebSocket = useCallback(() => {
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://back.agfo.ir';
 
     WebSocketClient.connect(apiUrl, token)
       .then(() => {

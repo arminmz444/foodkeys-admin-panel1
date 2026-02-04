@@ -6,7 +6,7 @@ export function registerJsonSchema(schemaUri, schemaObject) {
 		validate: true,
 		schemas: [
 			{
-				uri: schemaUri, // "http://localhost:8080/service/schema/23"
+				uri: schemaUri, // "https://back.agfo.ir/service/schema/23"
 				fileMatch: ['*'], // TODO: match only json files
 				schema: schemaObject
 			}

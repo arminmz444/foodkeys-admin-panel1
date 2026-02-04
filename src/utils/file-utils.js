@@ -1,7 +1,7 @@
 import axios from "axios";
 import { z } from "zod";
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:8080/api/v1/file-system";
+  process.env.REACT_APP_API_URL || "https://back.agfo.ir/api/v1/file-system";
 
 export const downloadFileOrFolder = async (
   username,
