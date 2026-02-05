@@ -27,6 +27,7 @@ import MapTab from "./tabs/MapTab";
 import SettingsTab from "./tabs/additional-settings-tab/SettingsTab";
 import ArchivesTab from "./tabs/ArchivesTab";
 import VersionHistoryTab from "./tabs/VersionHistoryTab";
+import RelatedCompaniesTab from "src/app/shared-components/related-companies/RelatedCompaniesTab";
 /**
  * Form Validation Schema
  */
@@ -164,6 +165,7 @@ function Company() {
               {/*<Tab className="h-64" label="تنظیمات" />*/}
               <Tab className="h-64" label="آرشیوها" /> 
               <Tab className="h-64" label="تاریخچه نسخه‌ها" /> 
+              <Tab className="h-64" label="شرکت‌های مرتبط" /> 
               {/* <Tab */}
               {/*	className="h-64" */}
               {/*	label="Product Images" */}
@@ -196,6 +198,7 @@ function Company() {
               {/*{tabValue === 9 && <SettingsTab />}*/}
               {tabValue === 9 && <ArchivesTab />}
               {tabValue === 10 && <VersionHistoryTab />}
+              {tabValue === 11 && <RelatedCompaniesTab bankType="food" />}
             </div>
 
               {/* <div className={tabValue !== 1 ? "hidden" : ""}>

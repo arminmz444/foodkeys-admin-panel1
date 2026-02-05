@@ -26,7 +26,9 @@ const FavoritesApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 			providesTags: (result, error, { subCategoryId }) => [
 				{ type: 'FavoriteCompany', id: subCategoryId },
 				{ type: 'Favorite', id: 'LIST' }
-			]
+			],
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
 		}),
 
 		// Get all favorites (non-paginated)
@@ -36,7 +38,9 @@ const FavoritesApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 				method: 'GET'
 			}),
 			transformResponse: (response) => response?.data || [],
-			providesTags: [{ type: 'Favorite', id: 'ALL' }]
+			providesTags: [{ type: 'Favorite', id: 'ALL' }],
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
 		}),
 
 		// Check if company is favorited
@@ -180,7 +184,9 @@ const FavoritesApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 					data.pageNumber = response.pagination.pageNumber;
 				}
 				return data;
-			}
+			},
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
 		})
 	}),
 	overrideExisting: false

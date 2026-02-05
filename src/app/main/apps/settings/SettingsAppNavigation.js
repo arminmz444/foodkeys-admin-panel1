@@ -214,6 +214,14 @@ const SettingsAppNavigation = {
 			subtitle: "مدیریت شرکت‌ها، خدمات و محصولات منتخب",
 		},
 		{
+			id: "apps.settings.related-entities",
+			icon: "heroicons-outline:link",
+			title: "مدیریت موجودیت‌های مرتبط",
+			type: "item",
+			url: "/apps/settings/related-entities",
+			subtitle: "مدیریت شرکت‌ها، خدمات و محصولات مرتبط",
+		},
+		{
 			id: "apps.settings.file-service-type-entity",
 			icon: "heroicons-outline:folder",
 			title: "تنظیمات انواع فایل ها",
@@ -273,76 +281,76 @@ const SettingsAppNavigation = {
 			]
 		},
 
-		{
-			id: "apps.settings.website-configs",
-			icon: "heroicons-outline:home",
-			title: "مدیریت صفحات سایت",
-			type: "item",
-			url: "/apps/settings/website-configs",
-			subtitle: "تنظیمات محتوای نمایشی صفحات سایت شامل: اسلایدر، لوگوها و ...",
-		},
-		{
-			id: "apps.settings.user-panel-configs",
-			icon: "heroicons-outline:user-circle",
-			title: "تنظیمات پنل کاربری",
-			type: "item",
-			url: "/apps/settings/user-panel-configs",
-			subtitle: "تنظیمات رابط کاربری پنل کاربران",
-		},
-		{
-			id: "apps.settings.config-management",
-			icon: "heroicons-outline:document-text",
-			title: "مدیریت پیکربندی ها",
-			type: "collapse",
-			subtitle: "مدیریت پیکربندی ها و شماهای سیستم",
-			children: [
-				{
-					id: "apps.settings.config-schemas",
-					title: "مدیریت شماها",
-					type: "item",
-					url: "/apps/settings/configs/schemas",
-					subtitle: "مدیریت شماهای پیکربندی سیستم",
-				},
-				{
-					id: "apps.settings.config-records",
-					title: "مدیریت پیکربندی ها",
-					type: "item",
-					url: "/apps/settings/configs/records",
-					subtitle: "مدیریت پیکربندی های سیستم",
-				}
-			]
-		},
-		{
-			id: "apps.settings.service-management",
-			icon: "heroicons-outline:server",
-			title: "مدیریت سرویس ها",
-			type: "collapse",
-			subtitle: "مدیریت سرویس ها و شماهای سرویس",
-			children: [
-				{
-					id: "apps.settings.service-schemas",
-					title: "مدیریت شماهای سرویس",
-					type: "item",
-					url: "/apps/settings/services/schemas",
-					subtitle: "مدیریت شماهای سرویس سیستم",
-				},
-				{
-					id: "apps.settings.service-records",
-					title: "مدیریت سرویس ها",
-					type: "item",
-					url: "/apps/settings/services/records",
-					subtitle: "مدیریت سرویس های سیستم",
-				}
-			]
-		},
-		{
-			id: "apps.settings.client-management",
-			icon: "heroicons-outline:users",
-			title: "مدیریت مشتریان",
-			type: "item",
-			url: "/apps/settings/clients",
-			subtitle: "مدیریت مشتریان سیستم",
-		},
+		// {
+		// 	id: "apps.settings.website-configs",
+		// 	icon: "heroicons-outline:home",
+		// 	title: "مدیریت صفحات سایت",
+		// 	type: "item",
+		// 	url: "/apps/settings/website-configs",
+		// 	subtitle: "تنظیمات محتوای نمایشی صفحات سایت شامل: اسلایدر، لوگوها و ...",
+		// },
+		// {
+		// 	id: "apps.settings.user-panel-configs",
+		// 	icon: "heroicons-outline:user-circle",
+		// 	title: "تنظیمات پنل کاربری",
+		// 	type: "item",
+		// 	url: "/apps/settings/user-panel-configs",
+		// 	subtitle: "تنظیمات رابط کاربری پنل کاربران",
+		// },
+		// {
+		// 	id: "apps.settings.config-management",
+		// 	icon: "heroicons-outline:document-text",
+		// 	title: "مدیریت پیکربندی ها",
+		// 	type: "collapse",
+		// 	subtitle: "مدیریت پیکربندی ها و شماهای سیستم",
+		// 	children: [
+		// 		{
+		// 			id: "apps.settings.config-schemas",
+		// 			title: "مدیریت شماها",
+		// 			type: "item",
+		// 			url: "/apps/settings/configs/schemas",
+		// 			subtitle: "مدیریت شماهای پیکربندی سیستم",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.config-records",
+		// 			title: "مدیریت پیکربندی ها",
+		// 			type: "item",
+		// 			url: "/apps/settings/configs/records",
+		// 			subtitle: "مدیریت پیکربندی های سیستم",
+		// 		}
+		// 	]
+		// },
+		// {
+		// 	id: "apps.settings.service-management",
+		// 	icon: "heroicons-outline:server",
+		// 	title: "مدیریت سرویس ها",
+		// 	type: "collapse",
+		// 	subtitle: "مدیریت سرویس ها و شماهای سرویس",
+		// 	children: [
+		// 		{
+		// 			id: "apps.settings.service-schemas",
+		// 			title: "مدیریت شماهای سرویس",
+		// 			type: "item",
+		// 			url: "/apps/settings/services/schemas",
+		// 			subtitle: "مدیریت شماهای سرویس سیستم",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.service-records",
+		// 			title: "مدیریت سرویس ها",
+		// 			type: "item",
+		// 			url: "/apps/settings/services/records",
+		// 			subtitle: "مدیریت سرویس های سیستم",
+		// 		}
+		// 	]
+		// },
+		// {
+		// 	id: "apps.settings.client-management",
+		// 	icon: "heroicons-outline:users",
+		// 	title: "مدیریت مشتریان",
+		// 	type: "item",
+		// 	url: "/apps/settings/clients",
+		// 	subtitle: "مدیریت مشتریان سیستم",
+		// },
 		{
 			id: "bundle.settings.List",
 			icon: "heroicons-outline:credit-card",
@@ -359,38 +367,38 @@ const SettingsAppNavigation = {
 			url: "/apps/settings/discount",
 			subtitle: "تنظیمات تخفیف‌ها شامل: لیست تخفیف ها، افزودن تخفیف و ...",
 		},
-		{
-			id: "apps.settings.security",
-			icon: "heroicons-outline:lock-closed",
-			title: "Security",
-			type: "item",
-			url: "/apps/settings/security",
-			subtitle: "Manage your password and 2-step verification preferences",
-		},
-		{
-			id: "apps.settings.planBilling",
-			icon: "heroicons-outline:credit-card",
-			title: "Plan & Billing",
-			type: "item",
-			url: "/apps/settings/plan-billing",
-			subtitle: "Manage your subscription plan, payment method and billing information",
-		},
-		{
-			id: "apps.settings.notifications",
-			icon: "heroicons-outline:bell",
-			title: "Notifications",
-			type: "item",
-			url: "/apps/settings/notifications",
-			subtitle: "Manage when you'll be notified on which channels",
-		},
-		{
-			id: "apps.settings.team",
-			icon: "heroicons-outline:user-group",
-			title: "Team",
-			type: "item",
-			url: "/apps/settings/team",
-			subtitle: "Manage your existing team and change roles/permissions",
-		},
+		// {
+		// 	id: "apps.settings.security",
+		// 	icon: "heroicons-outline:lock-closed",
+		// 	title: "Security",
+		// 	type: "item",
+		// 	url: "/apps/settings/security",
+		// 	subtitle: "Manage your password and 2-step verification preferences",
+		// },
+		// {
+		// 	id: "apps.settings.planBilling",
+		// 	icon: "heroicons-outline:credit-card",
+		// 	title: "Plan & Billing",
+		// 	type: "item",
+		// 	url: "/apps/settings/plan-billing",
+		// 	subtitle: "Manage your subscription plan, payment method and billing information",
+		// },
+		// {
+		// 	id: "apps.settings.notifications",
+		// 	icon: "heroicons-outline:bell",
+		// 	title: "Notifications",
+		// 	type: "item",
+		// 	url: "/apps/settings/notifications",
+		// 	subtitle: "Manage when you'll be notified on which channels",
+		// },
+		// {
+		// 	id: "apps.settings.team",
+		// 	icon: "heroicons-outline:user-group",
+		// 	title: "Team",
+		// 	type: "item",
+		// 	url: "/apps/settings/team",
+		// 	subtitle: "Manage your existing team and change roles/permissions",
+		// },
 	],
 };
 export default SettingsAppNavigation;

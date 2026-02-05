@@ -181,6 +181,7 @@ const NotificationsTab = lazy(() => import("./tabs/NotificationsTab"));
 const FileServiceTypeEntityTab = lazy(() => import("./tabs/file-service-type-entity/FileServiceTypeEntityTab"));
 const TeamTab = lazy(() => import("./tabs/TeamTab"));
 const FavoritesTab = lazy(() => import("./tabs/favorites/FavoritesTab"));
+const RelatedEntityTab = lazy(() => import("./tabs/related-entities/RelatedEntityTab"));
 
 /**
  * The Settings app config.
@@ -196,10 +197,14 @@ const SettingsAppConfig = {
 			path: "apps/settings",
 			element: <SettingsApp />,
 			children: [
-				{
-					path: "favorites",
-					element: <FavoritesTab />,
-				},
+			{
+				path: "favorites",
+				element: <FavoritesTab />,
+			},
+			{
+				path: "related-entities",
+				element: <RelatedEntityTab />,
+			},
 				{
 					path: "about-us-page",
 					element: <AboutUsPageTab />,
@@ -288,7 +293,7 @@ const SettingsAppConfig = {
 				},
 				{
 					path: "",
-					element: <Navigate to="account" />,
+					element: <Navigate to="favorites" />,
 				},
 			],
 		},

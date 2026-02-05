@@ -16,12 +16,11 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
-import Pagination from '@mui/material/Pagination';
 import Checkbox from '@mui/material/Checkbox';
 import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
 import Autocomplete from '@mui/material/Autocomplete';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
@@ -30,24 +29,21 @@ import {
 	HiOutlinePlus, 
 	HiOutlineTrash,
 	HiOutlineRefresh,
-	HiOutlineStar,
+	HiOutlineLink,
 	HiOutlineOfficeBuilding,
 	HiOutlineMenu,
-	HiOutlineCheck,
-	HiOutlineHeart,
-	HiOutlineFolder
+	HiOutlineCheck
 } from 'react-icons/hi';
 import { enqueueSnackbar } from 'notistack';
-import { useGetBundleSubCategoriesQuery } from '../bundles/store/bundleApi';
-import { useGetCategoryOptionsQuery } from 'src/app/main/category/CategoriesApi';
 import { getServerFile } from 'src/utils/string-utils';
 import { 
-	useGetFavoriteCompaniesQuery,
-	useAddBatchCompanyFavoritesMutation,
-	useRemoveCompanyFavoriteMutation,
-	useReorderCompanyFavoritesMutation,
-	useLazySearchCompaniesQuery
-} from './store/favoritesApi';
+	useGetRelatedCompaniesEnrichedQuery,
+	useAddRelatedCompaniesBatchMutation,
+	useRemoveRelatedCompanyMutation,
+	useReorderRelatedCompaniesMutation,
+	useLazySearchCompaniesForRelatedQuery,
+	useSearchCompaniesForRelatedQuery
+} from './store/relatedEntityApi';
 
 // Custom styled Paper for dropdowns
 const StyledPaper = (props) => (
@@ -79,11 +75,10 @@ const StyledPaper = (props) => (
 	/>
 );
 
-// Favorite Company Card Component with improved drag handle
-function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
-	// Use entityLogo and entityName from the API response
-	const logoUrl = company.entityLogo ? getServerFile(company.entityLogo) : null;
-	const companyName = company.entityName || `شرکت #${company.entityId}`;
+// Related Company Card Component
+function RelatedCompanyCard({ company, onRemove, isRemoving, index }) {
+	const logoUrl = company.logo ? getServerFile(company.logo) : null;
+	const companyName = company.companyName || company.relatedEntityName || `شرکت #${company.id}`;
 	
 	return (
 		<motion.div
@@ -93,17 +88,17 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 			exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
 			transition={{ duration: 0.3, delay: index * 0.03 }}
 			whileHover={{ scale: 1.02 }}
-			className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 hover:border-rose-300 dark:hover:border-rose-500 hover:shadow-lg transition-all duration-300"
+			className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-lg transition-all duration-300"
 			style={{ marginBottom: '12px' }}
 		>
 			{/* Order Badge */}
-			<div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg z-10">
+			<div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg z-10">
 				<span className="text-white text-sm font-bold">{company.displayOrder || index + 1}</span>
 			</div>
 
 			<div className="flex items-center gap-12">
 				{/* Drag Handle */}
-				<div className="cursor-grab active:cursor-grabbing flex items-center text-gray-400 hover:text-rose-500 transition-colors p-8 -ml-8 touch-none">
+				<div className="cursor-grab active:cursor-grabbing flex items-center text-gray-400 hover:text-indigo-500 transition-colors p-8 -ml-8 touch-none">
 					<HiOutlineMenu size={24} />
 				</div>
 
@@ -112,9 +107,9 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 					src={logoUrl}
 					alt={companyName}
 					className="w-56 h-56 rounded-lg border-2 border-gray-100 dark:border-gray-700 flex-shrink-0"
-					sx={{ bgcolor: 'rgba(244, 63, 94, 0.1)' }}
+					sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)' }}
 				>
-					<HiOutlineOfficeBuilding size={28} className="text-rose-500" />
+					<HiOutlineOfficeBuilding size={28} className="text-indigo-500" />
 				</Avatar>
 
 				{/* Company Info */}
@@ -125,7 +120,7 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 					<div className="flex items-center gap-8 flex-wrap">
 						<Chip 
 							size="small" 
-							label={`شناسه: ${company.entityId}`}
+							label={`شناسه: ${company.id || company.relatedEntityIdLong}`}
 							variant="outlined"
 							sx={{ 
 								borderColor: 'divider',
@@ -133,13 +128,25 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 								height: 22
 							}}
 						/>
-						{company.displayOrder && (
+						{company.subCategory && (
 							<Chip 
 								size="small" 
-								label={`ترتیب: ${company.displayOrder}`}
+								label={company.subCategory}
 								sx={{ 
-									bgcolor: 'rgba(244, 63, 94, 0.1)', 
-									color: '#f43f5e',
+									bgcolor: 'rgba(99, 102, 241, 0.1)', 
+									color: '#6366f1',
+									fontSize: '0.7rem',
+									height: 22
+								}}
+							/>
+						)}
+						{company.primaryBrand && (
+							<Chip 
+								size="small" 
+								label={company.primaryBrand}
+								sx={{ 
+									bgcolor: 'rgba(168, 85, 247, 0.1)', 
+									color: '#a855f7',
 									fontSize: '0.7rem',
 									height: 22
 								}}
@@ -149,7 +156,7 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 				</div>
 
 				{/* Remove Button */}
-				<Tooltip title="حذف از علاقه‌مندی‌ها">
+				<Tooltip title="حذف از لیست مرتبط">
 					<IconButton
 						size="small"
 						onClick={(e) => {
@@ -175,8 +182,8 @@ function FavoriteCompanyCard({ company, onRemove, isRemoving, index }) {
 function AddCompaniesDialog({ 
 	open, 
 	onClose, 
-	subCategoryId, 
-	existingFavoriteIds,
+	sourceCompanyId,
+	existingRelatedIds,
 	onAddSuccess 
 }) {
 	const [searchTerm, setSearchTerm] = useState('');
@@ -187,24 +194,22 @@ function AddCompaniesDialog({
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const scrollContainerRef = useRef(null);
 
-	const [triggerSearch, { isLoading: isSearching }] = useLazySearchCompaniesQuery();
-	const [addBatchFavorites, { isLoading: isAdding }] = useAddBatchCompanyFavoritesMutation();
+	const [triggerSearch, { isLoading: isSearching }] = useLazySearchCompaniesForRelatedQuery();
+	const [addRelatedCompanies, { isLoading: isAdding }] = useAddRelatedCompaniesBatchMutation();
 
 	// Load companies
 	const loadCompanies = useCallback(async (page, search = '', reset = false) => {
-		if (!subCategoryId) return;
-		
 		setIsLoadingMore(true);
 		try {
 			const result = await triggerSearch({
-				subCategoryId,
 				search: search,
 				pageNumber: page,
 				pageSize: 5
 			}).unwrap();
 			
+			// Filter out the source company and already related companies
 			const filtered = (result.data || []).filter(
-				company => !existingFavoriteIds.includes(company.id)
+				company => company.id !== sourceCompanyId && !existingRelatedIds.includes(company.id)
 			);
 			
 			if (reset) {
@@ -221,11 +226,11 @@ function AddCompaniesDialog({
 		} finally {
 			setIsLoadingMore(false);
 		}
-	}, [subCategoryId, existingFavoriteIds, triggerSearch]);
+	}, [sourceCompanyId, existingRelatedIds, triggerSearch]);
 
 	// Initial load and search change
 	useEffect(() => {
-		if (open && subCategoryId && searchTerm.trim().length > 0) {
+		if (open && sourceCompanyId && searchTerm.trim().length > 0) {
 			const timer = setTimeout(() => {
 				setCurrentPage(1);
 				setAllCompanies([]);
@@ -237,7 +242,7 @@ function AddCompaniesDialog({
 			setCurrentPage(1);
 			setHasMore(true);
 		}
-	}, [searchTerm, open, subCategoryId, loadCompanies]);
+	}, [searchTerm, open, sourceCompanyId, loadCompanies]);
 
 	// Scroll handler for infinite scroll
 	const handleScroll = useCallback((e) => {
@@ -261,17 +266,17 @@ function AddCompaniesDialog({
 		});
 	};
 
-	// Add selected companies as favorites
-	const handleAddFavorites = async () => {
+	// Add selected companies as related
+	const handleAddRelated = async () => {
 		if (selectedCompanies.length === 0) return;
 
 		try {
-			await addBatchFavorites({
-				subCategoryId,
-				companyIds: selectedCompanies.map(c => c.id)
+			await addRelatedCompanies({
+				companyId: sourceCompanyId,
+				relatedCompanyIds: selectedCompanies.map(c => c.id)
 			}).unwrap();
 			
-			enqueueSnackbar(`${selectedCompanies.length} شرکت به علاقه‌مندی‌ها اضافه شد`, {
+			enqueueSnackbar(`${selectedCompanies.length} شرکت به لیست مرتبط اضافه شد`, {
 				variant: 'success'
 			});
 			
@@ -281,7 +286,7 @@ function AddCompaniesDialog({
 			onAddSuccess?.();
 			onClose();
 		} catch (error) {
-			enqueueSnackbar('خطا در افزودن به علاقه‌مندی‌ها', {
+			enqueueSnackbar('خطا در افزودن به لیست مرتبط', {
 				variant: 'error'
 			});
 		}
@@ -311,12 +316,12 @@ function AddCompaniesDialog({
 		>
 			<DialogTitle className="border-b" sx={{ pb: 2 }}>
 				<div className="flex items-center gap-12">
-					<div className="p-8 rounded-xl bg-gradient-to-br from-rose-500/10 to-pink-500/10">
-						<HiOutlinePlus size={24} className="text-rose-500" />
+					<div className="p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
+						<HiOutlinePlus size={24} className="text-indigo-500" />
 					</div>
 					<div>
-						<Typography variant="h6" className="font-semibold">افزودن شرکت به علاقه‌مندی‌ها</Typography>
-						<Typography variant="caption" className="text-gray-500">شرکت‌های مورد نظر را جستجو و انتخاب کنید</Typography>
+						<Typography variant="h6" className="font-semibold">افزودن شرکت مرتبط</Typography>
+						<Typography variant="caption" className="text-gray-500">شرکت‌های مرتبط را جستجو و انتخاب کنید</Typography>
 					</div>
 				</div>
 			</DialogTitle>
@@ -353,9 +358,9 @@ function AddCompaniesDialog({
 						<motion.div
 							initial={{ opacity: 0, y: -10 }}
 							animate={{ opacity: 1, y: 0 }}
-							className="mt-12 p-12 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800"
+							className="mt-12 p-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800"
 						>
-							<Typography variant="body2" className="text-rose-600 dark:text-rose-400 font-medium">
+							<Typography variant="body2" className="text-indigo-600 dark:text-indigo-400 font-medium">
 								{selectedCompanies.length} شرکت انتخاب شده
 							</Typography>
 						</motion.div>
@@ -376,7 +381,7 @@ function AddCompaniesDialog({
 								{searchTerm ? 'شرکتی یافت نشد' : 'جستجوی شرکت'}
 							</Typography>
 							<Typography variant="body2" className="text-gray-500">
-								{searchTerm ? 'لطفاً عبارت دیگری را امتحان کنید' : 'برای یافتن و افزودن شرکت به علاقه‌مندی‌ها، نام شرکت را جستجو کنید'}
+								{searchTerm ? 'لطفاً عبارت دیگری را امتحان کنید' : 'برای یافتن و افزودن شرکت مرتبط، نام شرکت را جستجو کنید'}
 							</Typography>
 						</Box>
 					) : (
@@ -400,10 +405,10 @@ function AddCompaniesDialog({
 												sx={{
 													borderRadius: 2,
 													mb: 1,
-													border: isSelected ? '2px solid #f43f5e' : '2px solid transparent',
-													bgcolor: isSelected ? 'rgba(244, 63, 94, 0.04)' : 'transparent',
+													border: isSelected ? '2px solid #6366f1' : '2px solid transparent',
+													bgcolor: isSelected ? 'rgba(99, 102, 241, 0.04)' : 'transparent',
 													'&:hover': {
-														bgcolor: isSelected ? 'rgba(244, 63, 94, 0.08)' : 'action.hover'
+														bgcolor: isSelected ? 'rgba(99, 102, 241, 0.08)' : 'action.hover'
 													},
 													transition: 'all 0.2s'
 												}}
@@ -413,7 +418,7 @@ function AddCompaniesDialog({
 													sx={{
 														color: '#d1d5db',
 														'&.Mui-checked': {
-															color: '#f43f5e'
+															color: '#6366f1'
 														}
 													}}
 												/>
@@ -421,12 +426,12 @@ function AddCompaniesDialog({
 													<Avatar 
 														src={logoUrl}
 														sx={{ 
-															bgcolor: 'rgba(244, 63, 94, 0.1)',
+															bgcolor: 'rgba(99, 102, 241, 0.1)',
 															width: 48,
 															height: 48
 														}}
 													>
-														<HiOutlineOfficeBuilding size={24} className="text-rose-500" />
+														<HiOutlineOfficeBuilding size={24} className="text-indigo-500" />
 													</Avatar>
 												</ListItemAvatar>
 												<ListItemText
@@ -441,8 +446,8 @@ function AddCompaniesDialog({
 																sx={{ 
 																	height: 20,
 																	fontSize: '0.65rem',
-																	bgcolor: 'rgba(244, 63, 94, 0.1)',
-																	color: '#f43f5e'
+																	bgcolor: 'rgba(99, 102, 241, 0.1)',
+																	color: '#6366f1'
 																}}
 															/>
 														</div>
@@ -480,7 +485,7 @@ function AddCompaniesDialog({
 													}
 												/>
 												{isSelected && (
-													<HiOutlineCheck size={24} className="text-rose-500 flex-shrink-0" />
+													<HiOutlineCheck size={24} className="text-indigo-500 flex-shrink-0" />
 												)}
 											</ListItemButton>
 											{index < allCompanies.length - 1 && <Divider sx={{ my: 0.5 }} />}
@@ -516,13 +521,13 @@ function AddCompaniesDialog({
 				</Button>
 				<Button
 					variant="contained"
-					onClick={handleAddFavorites}
+					onClick={handleAddRelated}
 					disabled={selectedCompanies.length === 0 || isAdding}
 					startIcon={isAdding ? <CircularProgress size={16} /> : <HiOutlinePlus />}
 					sx={{
-						background: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 100%)',
+						background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
 						'&:hover': {
-							background: 'linear-gradient(135deg, #e11d48 0%, #db2777 100%)'
+							background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)'
 						}
 					}}
 				>
@@ -534,81 +539,67 @@ function AddCompaniesDialog({
 }
 
 // Main Component
-function CompanyFavoritesSection() {
-	const [category, setCategory] = useState(null);
-	const [subCategory, setSubCategory] = useState(null);
-	const [pagination, setPagination] = useState({ pageNumber: 1, pageSize: 12 });
+function CompanyRelatedSection() {
+	const [sourceCompany, setSourceCompany] = useState(null);
+	const [searchInput, setSearchInput] = useState('');
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-	const [favorites, setFavorites] = useState([]);
+	const [relatedCompanies, setRelatedCompanies] = useState([]);
 	const [removingId, setRemovingId] = useState(null);
 
-	// Category options query
+	// Search companies for source selection
 	const { 
-		data: categoriesData, 
-		isLoading: isCategoriesLoading 
-	} = useGetCategoryOptionsQuery({
-		pageNumber: 1,
-		pageSize: 50
-	});
-
-	// Subcategories query
-	const { 
-		data: subCategoriesData, 
-		isLoading: isSubCategoriesLoading,
-		isFetching: isSubCategoriesFetching 
-	} = useGetBundleSubCategoriesQuery(
-		{ categoryId: category?.value, pageNumber: 1, pageSize: 50 },
-		{ skip: !category?.value }
+		data: companiesData, 
+		isLoading: isCompaniesLoading,
+		isFetching: isCompaniesFetching
+	} = useSearchCompaniesForRelatedQuery(
+		{ search: searchInput, pageNumber: 1, pageSize: 20 },
+		{ skip: searchInput.length < 2 }
 	);
 
-	// Favorites query
+	// Related companies query
 	const { 
-		data: favoritesData, 
-		isLoading: isFavoritesLoading,
-		isFetching: isFavoritesFetching,
-		refetch: refetchFavorites
-	} = useGetFavoriteCompaniesQuery(
-		{ subCategoryId: subCategory?.subCategoryId, pageNumber: pagination.pageNumber, pageSize: pagination.pageSize },
-		{ skip: !subCategory?.subCategoryId }
+		data: relatedData, 
+		isLoading: isRelatedLoading,
+		isFetching: isRelatedFetching,
+		refetch: refetchRelated
+	} = useGetRelatedCompaniesEnrichedQuery(
+		sourceCompany?.id,
+		{ skip: !sourceCompany?.id }
 	);
 
 	// Mutations
-	const [removeCompanyFavorite] = useRemoveCompanyFavoriteMutation();
-	const [reorderFavorites, { isLoading: isReordering }] = useReorderCompanyFavoritesMutation();
+	const [removeRelatedCompany] = useRemoveRelatedCompanyMutation();
+	const [reorderRelatedCompanies, { isLoading: isReordering }] = useReorderRelatedCompaniesMutation();
 
-	// Categories list for autocomplete
-	const categoryOptions = categoriesData?.data || [];
-	
-	// Subcategories list for autocomplete
-	const subCategoryOptions = subCategoriesData?.data || [];
+	// Company options for autocomplete
+	const companyOptions = companiesData?.data || [];
 
-	// Update local favorites when data changes
+	// Update local related companies when data changes
 	useEffect(() => {
-		if (favoritesData?.data) {
-			setFavorites(favoritesData.data);
+		if (relatedData) {
+			setRelatedCompanies(relatedData);
 		}
-	}, [favoritesData]);
+	}, [relatedData]);
 
-	// Reset subcategory when category changes
+	// Reset related companies when source changes
 	useEffect(() => {
-		setSubCategory(null);
-		setFavorites([]);
-	}, [category]);
+		setRelatedCompanies([]);
+	}, [sourceCompany]);
 
-	// Handle remove favorite
-	const handleRemoveFavorite = async (company) => {
-		if (!subCategory?.subCategoryId) return;
+	// Handle remove related
+	const handleRemoveRelated = async (company) => {
+		if (!sourceCompany?.id) return;
 		
-		setRemovingId(company.entityId);
+		setRemovingId(company.id);
 		try {
-			await removeCompanyFavorite({
-				companyId: company.entityId,
-				subCategoryId: subCategory.subCategoryId
+			await removeRelatedCompany({
+				companyId: sourceCompany.id,
+				relatedCompanyId: company.id
 			}).unwrap();
 			
-			enqueueSnackbar('شرکت از علاقه‌مندی‌ها حذف شد', { variant: 'success' });
+			enqueueSnackbar('شرکت از لیست مرتبط حذف شد', { variant: 'success' });
 		} catch (error) {
-			enqueueSnackbar('خطا در حذف از علاقه‌مندی‌ها', { variant: 'error' });
+			enqueueSnackbar('خطا در حذف از لیست مرتبط', { variant: 'error' });
 		} finally {
 			setRemovingId(null);
 		}
@@ -616,197 +607,141 @@ function CompanyFavoritesSection() {
 
 	// Handle reorder (drag and drop)
 	const handleReorder = async (newOrder) => {
-		const oldOrder = [...favorites];
-		setFavorites(newOrder);
+		const oldOrder = [...relatedCompanies];
+		setRelatedCompanies(newOrder);
 		
-		if (!subCategory?.subCategoryId || isReordering) return;
+		if (!sourceCompany?.id || isReordering) return;
 		
 		try {
-			await reorderFavorites({
-				subCategoryId: subCategory.subCategoryId,
-				companyIds: newOrder.map(f => f.entityId)
+			await reorderRelatedCompanies({
+				companyId: sourceCompany.id,
+				orderedCompanyIds: newOrder.map(c => c.id)
 			}).unwrap();
 		} catch (error) {
 			// Revert on error
-			setFavorites(oldOrder);
+			setRelatedCompanies(oldOrder);
 			enqueueSnackbar('خطا در تغییر ترتیب', { variant: 'error' });
 		}
 	};
 
-	// Handle page change
-	const handlePageChange = (event, value) => {
-		setPagination(prev => ({ ...prev, pageNumber: value }));
-	};
-
-	const existingFavoriteIds = favorites.map(f => f.entityId);
-	const totalPages = favoritesData?.totalPages || 1;
-	const totalElements = favoritesData?.totalElements || 0;
+	const existingRelatedIds = relatedCompanies.map(c => c.id);
+	const totalElements = relatedCompanies.length;
 
 	return (
 		<div className="space-y-24">
-			{/* Filters Section */}
+			{/* Source Company Selection */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				className="grid grid-cols-1 md:grid-cols-2 gap-16"
 			>
-				{/* Category Select */}
-				<div>
-					<Typography variant="subtitle2" className="mb-8 font-semibold text-gray-700 dark:text-gray-300">
-						دسته‌بندی
-					</Typography>
-					<Autocomplete
-						value={category}
-						onChange={(event, newValue) => setCategory(newValue)}
-						options={categoryOptions}
-						getOptionLabel={(option) => option.label || option.title || ''}
-						isOptionEqualToValue={(option, value) => option.value === value?.value}
-						loading={isCategoriesLoading}
-						noOptionsText="دسته‌بندی یافت نشد"
-						loadingText="در حال بارگذاری..."
-						PaperComponent={StyledPaper}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								placeholder="انتخاب دسته‌بندی..."
-								InputProps={{
-									...params.InputProps,
-									startAdornment: (
-										<InputAdornment position="start">
-											<HiOutlineFolder size={20} className="text-gray-400" />
-										</InputAdornment>
-									),
-									endAdornment: (
-										<>
-											{isCategoriesLoading ? <CircularProgress color="inherit" size={20} /> : null}
-											{params.InputProps.endAdornment}
-										</>
-									),
-								}}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: 2,
-										bgcolor: 'background.paper',
-										'&:hover .MuiOutlinedInput-notchedOutline': {
-											borderColor: 'primary.main',
-										},
-										'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-											borderColor: 'primary.main',
-										}
+				<Typography variant="subtitle2" className="mb-8 font-semibold text-gray-700 dark:text-gray-300">
+					شرکت مبدأ
+				</Typography>
+				<Autocomplete
+					value={sourceCompany}
+					onChange={(event, newValue) => setSourceCompany(newValue)}
+					options={companyOptions}
+					getOptionLabel={(option) => option.companyName || option.name || ''}
+					isOptionEqualToValue={(option, value) => option.id === value?.id}
+					loading={isCompaniesLoading || isCompaniesFetching}
+					noOptionsText={searchInput.length < 2 ? "حداقل ۲ کاراکتر وارد کنید" : "شرکتی یافت نشد"}
+					loadingText="در حال جستجو..."
+					filterOptions={(x) => x}
+					onInputChange={(event, value) => setSearchInput(value)}
+					PaperComponent={StyledPaper}
+					renderInput={(params) => (
+						<TextField
+							{...params}
+							placeholder="جستجو و انتخاب شرکت..."
+							InputProps={{
+								...params.InputProps,
+								startAdornment: (
+									<InputAdornment position="start">
+										<HiOutlineOfficeBuilding size={20} className="text-gray-400" />
+									</InputAdornment>
+								),
+								endAdornment: (
+									<>
+										{(isCompaniesLoading || isCompaniesFetching) ? <CircularProgress color="inherit" size={20} /> : null}
+										{params.InputProps.endAdornment}
+									</>
+								),
+							}}
+							sx={{
+								'& .MuiOutlinedInput-root': {
+									borderRadius: 2,
+									bgcolor: 'background.paper',
+									'&:hover .MuiOutlinedInput-notchedOutline': {
+										borderColor: 'primary.main',
+									},
+									'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+										borderColor: 'primary.main',
 									}
-								}}
-							/>
-						)}
-						renderOption={(props, option) => (
-							<Box component="li" {...props} sx={{ py: 1.5, px: 2 }}>
-								<div className="flex items-center gap-12">
-									<div className="w-40 h-40 rounded-lg bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30 flex items-center justify-center">
-										<HiOutlineFolder size={20} className="text-rose-500" />
-									</div>
-									<div>
-										<Typography variant="body1" className="font-medium">
-											{option.label || option.title}
+								}
+							}}
+						/>
+					)}
+					renderOption={(props, option) => (
+						<Box component="li" {...props} sx={{ py: 1.5, px: 2 }}>
+							<div className="flex items-center gap-12">
+								<Avatar
+									src={option.logo ? getServerFile(option.logo) : undefined}
+									sx={{ 
+										width: 40, 
+										height: 40,
+										bgcolor: 'rgba(99, 102, 241, 0.1)'
+									}}
+								>
+									<HiOutlineOfficeBuilding size={20} className="text-indigo-500" />
+								</Avatar>
+								<div className="flex-1 min-w-0">
+									<Typography variant="body1" className="font-medium truncate">
+										{option.companyName || option.name}
+									</Typography>
+									{option.subCategory && (
+										<Typography variant="caption" className="text-gray-500 truncate block">
+											{option.subCategory}
 										</Typography>
-										{option.description && (
-											<Typography variant="caption" className="text-gray-500">
-												{option.description}
-											</Typography>
-										)}
-									</div>
+									)}
 								</div>
-							</Box>
-						)}
-					/>
-				</div>
-
-				{/* SubCategory Select */}
-				<div>
-					<Typography variant="subtitle2" className="mb-8 font-semibold text-gray-700 dark:text-gray-300">
-						زیرمجموعه
-					</Typography>
-					<Autocomplete
-						value={subCategory}
-						onChange={(event, newValue) => setSubCategory(newValue)}
-						options={subCategoryOptions}
-						getOptionLabel={(option) => option.title || option.subCategoryName || ''}
-						isOptionEqualToValue={(option, value) => option.subCategoryId === value?.subCategoryId}
-						loading={isSubCategoriesLoading || isSubCategoriesFetching}
-						disabled={!category}
-						noOptionsText={category ? "زیرمجموعه یافت نشد" : "ابتدا دسته‌بندی را انتخاب کنید"}
-						loadingText="در حال بارگذاری..."
-						PaperComponent={StyledPaper}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								placeholder={category ? "انتخاب زیرمجموعه..." : "ابتدا دسته‌بندی را انتخاب کنید"}
-								InputProps={{
-									...params.InputProps,
-									startAdornment: (
-										<InputAdornment position="start">
-											<HiOutlineOfficeBuilding size={20} className="text-gray-400" />
-										</InputAdornment>
-									),
-									endAdornment: (
-										<>
-											{(isSubCategoriesLoading || isSubCategoriesFetching) ? <CircularProgress color="inherit" size={20} /> : null}
-											{params.InputProps.endAdornment}
-										</>
-									),
-								}}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: 2,
-										bgcolor: 'background.paper',
-										'&:hover .MuiOutlinedInput-notchedOutline': {
-											borderColor: 'primary.main',
-										},
-										'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-											borderColor: 'primary.main',
-										}
-									}
-								}}
-							/>
-						)}
-						renderOption={(props, option) => (
-							<Box component="li" {...props} sx={{ py: 1.5, px: 2 }}>
-								<div className="flex items-center gap-12 w-full">
-									<div className="w-40 h-40 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center flex-shrink-0">
-										<HiOutlineOfficeBuilding size={20} className="text-blue-500" />
-									</div>
-									<div className="flex-1 min-w-0">
-										<Typography variant="body2" className="font-medium truncate">
-											{option.title || option.subCategoryName}
-										</Typography>
-									</div>
-								</div>
-							</Box>
-						)}
-					/>
-				</div>
+								<Chip 
+									label={`#${option.id}`}
+									size="small"
+									sx={{ 
+										height: 20,
+										fontSize: '0.65rem',
+										bgcolor: 'rgba(99, 102, 241, 0.1)',
+										color: '#6366f1'
+									}}
+								/>
+							</div>
+						</Box>
+					)}
+				/>
 			</motion.div>
 
 			{/* Actions Bar */}
-			{subCategory && (
+			{sourceCompany && (
 				<motion.div
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					className="flex flex-wrap items-center justify-between gap-12 p-16 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700"
 				>
 					<div className="flex items-center gap-12">
-						<HiOutlineStar size={20} className="text-amber-500" />
+						<HiOutlineLink size={20} className="text-indigo-500" />
 						<Typography variant="body2" className="text-gray-600 dark:text-gray-400">
-							{totalElements} شرکت در علاقه‌مندی‌ها
+							{totalElements} شرکت مرتبط با "{sourceCompany.companyName || sourceCompany.name}"
 						</Typography>
 					</div>
 					
 					<div className="flex items-center gap-8">
 						<Tooltip title="بازخوانی لیست">
 							<IconButton 
-								onClick={() => refetchFavorites()}
-								disabled={isFavoritesFetching}
-								className="text-gray-500 hover:text-rose-500"
+								onClick={() => refetchRelated()}
+								disabled={isRelatedFetching}
+								className="text-gray-500 hover:text-indigo-500"
 							>
-								<HiOutlineRefresh size={20} className={isFavoritesFetching ? 'animate-spin' : ''} />
+								<HiOutlineRefresh size={20} className={isRelatedFetching ? 'animate-spin' : ''} />
 							</IconButton>
 						</Tooltip>
 						
@@ -815,20 +750,20 @@ function CompanyFavoritesSection() {
 							startIcon={<HiOutlinePlus />}
 							onClick={() => setIsAddDialogOpen(true)}
 							sx={{
-								background: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 100%)',
+								background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
 								'&:hover': {
-									background: 'linear-gradient(135deg, #e11d48 0%, #db2777 100%)'
+									background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)'
 								}
 							}}
 						>
-							افزودن شرکت
+							افزودن شرکت مرتبط
 						</Button>
 					</div>
 				</motion.div>
 			)}
 
 			{/* Content Section */}
-			{!subCategory ? (
+			{!sourceCompany ? (
 				<Alert 
 					severity="info" 
 					className="rounded-xl"
@@ -838,9 +773,9 @@ function CompanyFavoritesSection() {
 						borderColor: 'info.light',
 					}}
 				>
-					<Typography>لطفاً یک دسته‌بندی و زیرمجموعه انتخاب کنید تا شرکت‌های منتخب نمایش داده شوند.</Typography>
+					<Typography>لطفاً یک شرکت را جستجو و انتخاب کنید تا شرکت‌های مرتبط با آن نمایش داده شوند.</Typography>
 				</Alert>
-			) : isFavoritesLoading ? (
+			) : isRelatedLoading ? (
 				<div className="space-y-12">
 					{[...Array(6)].map((_, i) => (
 						<Skeleton 
@@ -852,88 +787,67 @@ function CompanyFavoritesSection() {
 						/>
 					))}
 				</div>
-			) : favorites.length === 0 ? (
+			) : relatedCompanies.length === 0 ? (
 				<motion.div
 					initial={{ opacity: 0, scale: 0.9 }}
 					animate={{ opacity: 1, scale: 1 }}
 					className="text-center py-48"
 				>
 					<div className="w-80 h-80 mx-auto mb-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-						<HiOutlineHeart size={40} className="text-gray-300 dark:text-gray-600" />
+						<HiOutlineLink size={40} className="text-gray-300 dark:text-gray-600" />
 					</div>
 					<Typography variant="h6" className="text-gray-500 mb-8">
-						هنوز شرکتی به علاقه‌مندی‌ها اضافه نشده است
+						هنوز شرکت مرتبطی اضافه نشده است
 					</Typography>
 					<Typography variant="body2" className="text-gray-400 mb-24">
-						با کلیک روی دکمه زیر، شرکت‌های مورد نظر خود را اضافه کنید
+						با کلیک روی دکمه زیر، شرکت‌های مرتبط را اضافه کنید
 					</Typography>
 					<Button
 						variant="outlined"
 						startIcon={<HiOutlinePlus />}
 						onClick={() => setIsAddDialogOpen(true)}
 						sx={{
-							borderColor: '#f43f5e',
-							color: '#f43f5e',
+							borderColor: '#6366f1',
+							color: '#6366f1',
 							'&:hover': {
-								borderColor: '#e11d48',
-								bgcolor: 'rgba(244, 63, 94, 0.04)'
+								borderColor: '#4f46e5',
+								bgcolor: 'rgba(99, 102, 241, 0.04)'
 							}
 						}}
 					>
-						افزودن اولین شرکت
+						افزودن اولین شرکت مرتبط
 					</Button>
 				</motion.div>
 			) : (
 				<>
-					{/* Reorderable Favorites List */}
+					{/* Reorderable Related List */}
 					<Reorder.Group
 						axis="y"
-						values={favorites}
+						values={relatedCompanies}
 						onReorder={handleReorder}
 						className="space-y-0"
 						style={{ listStyle: 'none', padding: 0, margin: 0 }}
 					>
 						<AnimatePresence mode="popLayout">
-							{favorites.map((company, index) => (
+							{relatedCompanies.map((company, index) => (
 								<Reorder.Item
-									key={company.id || company.entityId}
+									key={company.id}
 									value={company}
 									style={{ 
-										zIndex: favorites.length - index,
+										zIndex: relatedCompanies.length - index,
 										position: 'relative'
 									}}
 								>
-									<FavoriteCompanyCard
+									<RelatedCompanyCard
 										company={company}
 										index={index}
-										onRemove={handleRemoveFavorite}
-										isRemoving={removingId === company.entityId}
+										onRemove={handleRemoveRelated}
+										isRemoving={removingId === company.id}
 									/>
 								</Reorder.Item>
 							))}
 						</AnimatePresence>
 					</Reorder.Group>
-
-					{/* Pagination */}
-					{totalPages > 1 && (
-						<Box className="flex justify-center mt-24">
-							<Pagination
-								count={totalPages}
-								page={pagination.pageNumber}
-								onChange={handlePageChange}
-								color="primary"
-								shape="rounded"
-								sx={{
-									'& .MuiPaginationItem-root': {
-										'&.Mui-selected': {
-											background: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 100%)',
-											color: 'white'
-										}
-									}
-								}}
-							/>
-						</Box>
-					)}
 				</>
 			)}
 
@@ -941,12 +855,12 @@ function CompanyFavoritesSection() {
 			<AddCompaniesDialog
 				open={isAddDialogOpen}
 				onClose={() => setIsAddDialogOpen(false)}
-				subCategoryId={subCategory?.subCategoryId}
-				existingFavoriteIds={existingFavoriteIds}
-				onAddSuccess={() => refetchFavorites()}
+				sourceCompanyId={sourceCompany?.id}
+				existingRelatedIds={existingRelatedIds}
+				onAddSuccess={() => refetchRelated()}
 			/>
 		</div>
 	);
 }
 
-export default CompanyFavoritesSection;
+export default CompanyRelatedSection;
