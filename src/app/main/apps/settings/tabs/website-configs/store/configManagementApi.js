@@ -273,7 +273,7 @@ const ConfigManagementApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoint
       query: ({ configName, file }) => {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         return {
           url: `/config/${configName}/file`,
           method: 'POST',

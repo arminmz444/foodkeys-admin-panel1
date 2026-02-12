@@ -115,6 +115,7 @@ const CompanyModel = (data) => {
     // Display settings
     hasPrivatePage: data?.hasPrivatePage || false,
     miniAppIframeSource: data?.miniAppIframeSource || "",
+    watermark: data?.watermark || "",
     
     // Images and media
     logo: data?.logo || "",

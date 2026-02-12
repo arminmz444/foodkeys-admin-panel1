@@ -2,9 +2,7 @@ import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import _ from '@lodash';
 import { motion } from 'framer-motion';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -15,7 +13,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { MdTextFields, MdNumbers, MdDescription, MdExtension, MdSecurity } from 'react-icons/md';
+import { MdTextFields, MdNumbers, MdExtension } from 'react-icons/md';
 import { BiCodeCurly } from 'react-icons/bi';
 import { FaDatabase } from 'react-icons/fa';
 import { z } from 'zod';
@@ -229,18 +227,18 @@ function FileServiceTypeTab() {
   
   return (
     <motion.div 
-      className="w-full p-24 md:p-32" 
+      className="w-full h-full flex flex-col p-24 md:p-32" 
       initial="hidden"
       animate="show"
       variants={containerAnimation}
     >
       <motion.div 
-        className="flex items-center justify-between mb-32"
+        className="flex items-center justify-between mb-24 flex-shrink-0"
         variants={itemAnimation}
       >
         <div>
           <Typography className="text-2xl font-bold">مدیریت انواع فایل سرویس</Typography>
-          <Typography color="text.secondary">
+          <Typography color="text.secondary" className="mt-4">
             در این بخش می‌توانید انواع فایل‌های سرویس را مدیریت کنید.
           </Typography>
         </div>
@@ -249,57 +247,143 @@ function FileServiceTypeTab() {
           color="secondary"
           startIcon={<Add />}
           onClick={() => handleOpenDialog()}
+          className="flex-shrink-0"
         >
           افزودن نوع جدید
         </Button>
       </motion.div>
       
-      <motion.div variants={itemAnimation}>
-        <TableContainer component={Paper} className="mb-32">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>نام</TableCell>
-                <TableCell>نام نمایشی</TableCell>
-                <TableCell>حداکثر اندازه</TableCell>
-                <TableCell>پسوندهای مجاز</TableCell>
-                <TableCell>حداکثر تعداد فایل‌ها</TableCell>
-                <TableCell>اسکن آنتی‌ویروس</TableCell>
-                <TableCell>عملیات</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
+      <motion.div 
+        variants={itemAnimation}
+        className="flex-1 min-h-0"
+      >
+        <Paper className="h-full flex flex-col">
+          <TableContainer className="flex-1 overflow-auto">
+            <Table stickyHeader>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={7} align="center">در حال بارگذاری...</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">نام</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">نام نمایشی</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">حداکثر اندازه</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">پسوندهای مجاز</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">حداکثر فایل</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold">آنتی‌ویروس</TableCell>
+                  <TableCell className="bg-gray-50 dark:bg-gray-800 font-semibold" align="center">عملیات</TableCell>
                 </TableRow>
-              ) : fileServiceTypes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">هیچ داده‌ای یافت نشد.</TableCell>
-                </TableRow>
-              ) : (
-                fileServiceTypes.map((type) => (
-                  <TableRow key={type.name}>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.name}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.displayName}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.maxSize}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.validExtensions || '-'}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.maxFiles}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>{type.scanWithAntivirus ? 'بله' : 'خیر'}</TableCell>
-                    <TableCell style={{ direction: 'rtl', textAlign: 'right' }}>
-                      <IconButton onClick={() => handleOpenDialog(type)} color="primary">
-                        <Edit />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(type.name)} color="error">
-                        <Delete />
-                      </IconButton>
+              </TableHead>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" className="py-64">
+                      <div className="flex flex-col items-center gap-8">
+                        <FuseSvgIcon className="animate-spin" size={32}>heroicons-outline:refresh</FuseSvgIcon>
+                        <Typography color="text.secondary">در حال بارگذاری...</Typography>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : fileServiceTypes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" className="py-64">
+                      <div className="flex flex-col items-center gap-8">
+                        <FuseSvgIcon size={48} className="text-gray-400">heroicons-outline:document</FuseSvgIcon>
+                        <Typography color="text.secondary">هیچ نوع فایل سرویسی تعریف نشده است</Typography>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          size="small"
+                          onClick={() => handleOpenDialog()}
+                        >
+                          افزودن اولین مورد
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  fileServiceTypes.map((type) => (
+                    <TableRow 
+                      key={type.name}
+                      hover
+                      className="cursor-pointer"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-8">
+                          <FuseSvgIcon size={20} className="text-gray-500">heroicons-outline:tag</FuseSvgIcon>
+                          <Typography className="font-medium">{type.name}</Typography>
+                        </div>
+                      </TableCell>
+                      <TableCell>{type.displayName}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={`${(type.maxSize / 1024).toFixed(0)} KB`} 
+                          size="small" 
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-4 max-w-xs">
+                          {type.validExtensions ? (
+                            type.validExtensions.split(',').slice(0, 3).map((ext, idx) => (
+                              <Chip 
+                                key={idx}
+                                label={`.${ext.trim()}`} 
+                                size="small" 
+                                color="primary"
+                                variant="outlined"
+                              />
+                            ))
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">-</Typography>
+                          )}
+                          {type.validExtensions && type.validExtensions.split(',').length > 3 && (
+                            <Chip 
+                              label={`+${type.validExtensions.split(',').length - 3}`} 
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={type.maxFiles} 
+                          size="small" 
+                          color="secondary"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={type.scanWithAntivirus ? 'فعال' : 'غیرفعال'}
+                          size="small"
+                          color={type.scanWithAntivirus ? 'success' : 'default'}
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <div className="flex gap-4 justify-center">
+                          <IconButton 
+                            onClick={() => handleOpenDialog(type)} 
+                            color="primary"
+                            size="small"
+                          >
+                            <Edit fontSize="small" />
+                          </IconButton>
+                          <IconButton 
+                            onClick={() => handleDelete(type.name)} 
+                            color="error"
+                            size="small"
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </motion.div>
       
       <Dialog 
@@ -307,10 +391,23 @@ function FileServiceTypeTab() {
         onClose={handleCloseDialog} 
         maxWidth="md" 
         fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: { maxHeight: '90vh' }
+        }}
       >
-        <DialogTitle>{isEdit ? 'ویرایش نوع فایل سرویس' : 'افزودن نوع فایل سرویس جدید'}</DialogTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent>
+        <DialogTitle className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+          <div className="flex items-center gap-8">
+            <FuseSvgIcon size={24} color="action">
+              {isEdit ? 'heroicons-outline:pencil' : 'heroicons-outline:plus-circle'}
+            </FuseSvgIcon>
+            <Typography variant="h6">
+              {isEdit ? 'ویرایش نوع فایل سرویس' : 'افزودن نوع فایل سرویس جدید'}
+            </Typography>
+          </div>
+        </DialogTitle>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+          <DialogContent className="flex-1 overflow-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-24">
               <Controller
                 control={control}
@@ -619,11 +716,12 @@ function FileServiceTypeTab() {
             </div>
           </DialogContent>
           
-          <DialogActions className="p-24">
+          <DialogActions className="sticky bottom-0 z-10 bg-white dark:bg-gray-800 border-t p-16 gap-8">
             <Button
               variant="outlined"
               onClick={handleCloseDialog}
               size="large"
+              fullWidth
             >
               انصراف
             </Button>
@@ -633,6 +731,7 @@ function FileServiceTypeTab() {
               disabled={_.isEmpty(dirtyFields) || !isValid}
               type="submit"
               size="large"
+              fullWidth
             >
               {isEdit ? 'بروزرسانی' : 'ذخیره'}
             </Button>

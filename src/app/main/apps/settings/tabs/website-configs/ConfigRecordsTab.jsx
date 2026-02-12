@@ -521,7 +521,7 @@ const ConfigRecordsTab = () => {
             مدیریت پیکربندی‌ها
           </Typography>
           <Typography className="font-medium tracking-tight" color="text.secondary">
-            پیکربندی‌های سیستم را مدیریت کنید
+            پیکربندی‌های سایت را مدیریت کنید
           </Typography>
         </div>
         

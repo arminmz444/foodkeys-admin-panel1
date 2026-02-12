@@ -50,14 +50,15 @@ const websiteConfigApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
             invalidatesTags: ['ConfigSchema'],
         }),
 
-        uploadConfigFile: builder.mutation({
+        uploadWebsiteConfigFile: builder.mutation({
             query: ({ section, file }) => {
                 const formData = new FormData();
                 formData.append('file', file);
                 return {
-                    url: `/${section}/file`,
+                    url: `/config/${section}/file`,
                     method: 'POST',
                     data: formData,
+                    formData: true
                 };
             },
             invalidatesTags: (result, error, { section }) => [{ type: 'WebsiteConfig', id: section }],
@@ -74,5 +75,5 @@ export const {
     useAddConfigMutation,
     useUpdateConfigMutation,
     useAddConfigSchemaMutation,
-    useUploadConfigFileMutation,
+    useUploadWebsiteConfigFileMutation,
 } = websiteConfigApi;

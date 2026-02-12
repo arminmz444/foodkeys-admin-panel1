@@ -183,6 +183,10 @@ const TeamTab = lazy(() => import("./tabs/TeamTab"));
 const FavoritesTab = lazy(() => import("./tabs/favorites/FavoritesTab"));
 const RelatedEntityTab = lazy(() => import("./tabs/related-entities/RelatedEntityTab"));
 
+// Dynamic Configs
+const DynamicConfigPage = lazy(() => import("./tabs/dynamic-configs/DynamicConfigPage"));
+const DynamicConfigEditor = lazy(() => import("./tabs/dynamic-configs/DynamicConfigEditor"));
+
 /**
  * The Settings app config.
  */
@@ -287,14 +291,23 @@ const SettingsAppConfig = {
 					path: "file-service-type-entity",
 					element: <FileServiceTypeEntityTab />,
 				},
-				{
-					path: "team",
-					element: <TeamTab />,
-				},
-				{
-					path: "",
-					element: <Navigate to="favorites" />,
-				},
+{
+				path: "team",
+				element: <TeamTab />,
+			},
+			// Dynamic Configs Routes
+			{
+				path: "dynamic-configs",
+				element: <DynamicConfigPage />,
+			},
+			{
+				path: "dynamic-configs/:configName",
+				element: <DynamicConfigEditor />,
+			},
+			{
+				path: "",
+				element: <Navigate to="dynamic-configs" />,
+			},
 			],
 		},
 		{

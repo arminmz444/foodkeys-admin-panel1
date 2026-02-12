@@ -206,6 +206,14 @@ const SettingsAppNavigation = {
 	translate: "SETTINGS",
 	children: [
 		{
+			id: "apps.settings.dynamic-configs",
+			icon: "heroicons-outline:adjustments",
+			title: "پیکربندی‌های سایت",
+			type: "item",
+			url: "/apps/settings/dynamic-configs",
+			subtitle: "مدیریت تمامی پیکربندی‌های سایت به صورت پویا",
+		},
+		{
 			id: "apps.settings.favorites",
 			icon: "heroicons-outline:heart",
 			title: "مدیریت علاقه‌مندی‌ها",
