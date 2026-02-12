@@ -482,6 +482,9 @@ const AgricultureIndustryApi = api
       logo: data.logo,
       backgroundImage: data.backgroundImage,
       
+      // Additional info (custom key-value pairs)
+      additionalInfo: data.additionalInfo || {},
+      
       // Gallery files
       galleryFiles: prepareGalleryFiles(data)
     };

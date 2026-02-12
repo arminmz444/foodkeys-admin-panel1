@@ -1,12 +1,27 @@
-import { Typography, MenuItem, Select, FormControl, InputLabel, FormHelperText, FormControlLabel, Checkbox, Box, Paper, IconButton, TextField } from '@mui/material';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import CustomSelect from 'app/shared-components/custom-select/CustomSelect.jsx';
-import UserSelectOption from 'app/shared-components/custom-select-options/UserSelectOption';
-import FileUpload from '@mui/icons-material/FileUpload';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useRef, useState } from 'react';
+import {
+	Typography,
+	MenuItem,
+	Select,
+	FormControl,
+	InputLabel,
+	FormHelperText,
+	FormControlLabel,
+	Checkbox,
+	Box,
+	Paper,
+	IconButton,
+	TextField,
+	Divider
+} from "@mui/material";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import CustomSelect from "app/shared-components/custom-select/CustomSelect.jsx";
+import UserSelectOption from "app/shared-components/custom-select-options/UserSelectOption";
+import FileUpload from "@mui/icons-material/FileUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRef, useState } from "react";
+import AdditionalInfoField from "src/app/shared-components/AdditionalInfoField/AdditionalInfoField";
 
-function RegistrarTab(props) {
+function RegistrarTab() {
 	const methods = useFormContext();
 	const { control, formState } = methods;
 	const { errors } = formState;
@@ -144,32 +159,32 @@ function RegistrarTab(props) {
 			</div>
 			
 			{/* واترمارک (Watermark) Section */}
-			<Typography
-				variant="subtitle1"
-				color="textPrimary"
-				className="mt-24 mb-8 sm:mx-4"
-			>
-				واترمارک
-			</Typography>
+			{/*<Typography*/}
+			{/*	variant="subtitle1"*/}
+			{/*	color="textPrimary"*/}
+			{/*	className="mt-24 mb-8 sm:mx-4"*/}
+			{/*>*/}
+			{/*	واترمارک*/}
+			{/*</Typography>*/}
 			
-			<Controller
-				name="watermark"
-				control={control}
-				defaultValue=""
-				render={({ field }) => (
-					<TextField
-						{...field}
-						className="mt-8 mb-16 sm:mx-4"
-						label="متن واترمارک"
-						placeholder="متن واترمارک را وارد کنید"
-						id="watermark"
-						variant="outlined"
-						fullWidth
-						error={!!errors.watermark}
-						helperText={errors?.watermark?.message || "متن واترمارکی که بر روی تصاویر نمایش داده می‌شود"}
-					/>
-				)}
-			/>
+			{/*<Controller*/}
+			{/*	name="watermark"*/}
+			{/*	control={control}*/}
+			{/*	defaultValue=""*/}
+			{/*	render={({ field }) => (*/}
+			{/*		<TextField*/}
+			{/*			{...field}*/}
+			{/*			className="mt-8 mb-16 sm:mx-4"*/}
+			{/*			label="متن واترمارک"*/}
+			{/*			placeholder="متن واترمارک را وارد کنید"*/}
+			{/*			id="watermark"*/}
+			{/*			variant="outlined"*/}
+			{/*			fullWidth*/}
+			{/*			error={!!errors.watermark}*/}
+			{/*			helperText={errors?.watermark?.message || "متن واترمارکی که بر روی تصاویر نمایش داده می‌شود"}*/}
+			{/*		/>*/}
+			{/*	)}*/}
+			{/*/>*/}
 			
 			{/* صفحه اختصاصی (Private Page) Section */}
 			<Typography
@@ -311,6 +326,12 @@ function RegistrarTab(props) {
 					</Paper>
 				)
 			)}
+			
+			{/* Divider */}
+			<Divider className="my-32" />
+			
+			{/* Additional Info Section */}
+			<AdditionalInfoField name="additionalInfo" />
 		</div>
 	);
 }
