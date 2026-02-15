@@ -1,6 +1,6 @@
 import FuseLayout from '@fuse/core/FuseLayout';
 import FuseTheme from '@fuse/core/FuseTheme';
-import { SnackbarProvider } from 'notistack';
+import { SnackbarProvider, MaterialDesignContent } from 'notistack';
 import rtlPlugin from 'stylis-plugin-rtl';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
@@ -15,6 +15,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import withAppProviders from './withAppProviders';
 import AuthenticationProvider from './auth/AuthenticationProvider';
 import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
+import { styled } from '@mui/material/styles';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -30,6 +31,53 @@ const emotionCacheOptions = {
 		insertionPoint: document.getElementById('emotion-insertion-point')
 	}
 };
+
+// Custom styled snackbar components for better appearance
+const StyledMaterialDesignContent = styled(MaterialDesignContent)(({ theme }) => ({
+	'&.notistack-MuiContent': {
+		fontFamily: theme.typography.fontFamily,
+		fontSize: '1.05rem',
+		fontWeight: 500,
+		borderRadius: '14px',
+		padding: '14px 22px',
+		boxShadow: '0 8px 32px -8px rgba(0,0,0,0.25)',
+		minWidth: '300px',
+		backdropFilter: 'blur(10px)',
+	},
+	'&.notistack-MuiContent-success': {
+		background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+		color: '#fff',
+		'& .MuiSvgIcon-root': {
+			color: '#fff',
+		},
+	},
+	'&.notistack-MuiContent-error': {
+		background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+		color: '#fff',
+		'& .MuiSvgIcon-root': {
+			color: '#fff',
+		},
+	},
+	'&.notistack-MuiContent-warning': {
+		background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+		color: '#fff',
+		'& .MuiSvgIcon-root': {
+			color: '#fff',
+		},
+	},
+	'&.notistack-MuiContent-info': {
+		background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+		color: '#fff',
+		'& .MuiSvgIcon-root': {
+			color: '#fff',
+		},
+	},
+	'& #notistack-snackbar': {
+		fontSize: '1.15rem',
+		fontWeight: 500,
+		lineHeight: 1.5,
+	},
+}));
 
 /**
  * The main App component.
@@ -90,6 +138,13 @@ function App() {
 								anchorOrigin={{
 									vertical: 'bottom',
 									horizontal: 'right'
+								}}
+								autoHideDuration={4000}
+								Components={{
+									success: StyledMaterialDesignContent,
+									error: StyledMaterialDesignContent,
+									warning: StyledMaterialDesignContent,
+									info: StyledMaterialDesignContent,
 								}}
 								classes={{
 									containerRoot: 'bottom-0 right-0 mb-52 md:mb-68 mr-8 lg:mr-80 z-99'

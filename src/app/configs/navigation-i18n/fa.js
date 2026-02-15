@@ -33,6 +33,8 @@ const locale = {
   BANK_ARCHIVE: "آرشیو بانک",
   REQUEST_LIST: "لیست درخواست‌ها",
   CREATE_COMPANY: "ثبت شرکت جدید",
+  WEBLOG: "وبلاگ خبری",
+  SUB_WEBLOG: "بخش وبلاگ خبری",
   SUB_DASHBOARDS: "بخش داشبورد پنل",
   SUB_BANKS: "بخش بانک‌های سایت",
   SUB_APPLICATIONS: "بخش اپلیکیشن‌های پنل",
