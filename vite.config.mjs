@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgrPlugin from 'vite-plugin-svgr';
 import jsconfigPaths from 'vite-jsconfig-paths';
+import path from 'path';
 // import {nodePolyfills} from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
@@ -53,7 +54,11 @@ export default defineConfig({
 			'app/shared-components': '/src/app/shared-components',
 			'app/configs': '/src/app/configs',
 			'app/theme-layouts': '/src/app/theme-layouts',
-			'app/AppContext': '/src/app/AppContext'
+			'app/AppContext': '/src/app/AppContext',
+			// Fix: date-fns v3 has only named exports for longFormatters,
+			// but @mui/x-date-pickers and date-fns-jalali expect a default import.
+			// This shim provides both named and default exports.
+			'date-fns/_lib/format/longFormatters': path.resolve(__dirname, 'src/utils/date-fns-longFormatters-shim.mjs'),
 		}
 	},
 	optimizeDeps: {

@@ -21,16 +21,51 @@ function DynamicConfigPage() {
     // Selected config for editing
     const [selectedConfig, setSelectedConfig] = useState(null);
 
-    // Fetch all configs
+    // Pagination & search state
+    const [pageNumber, setPageNumber] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortField, _setSortField] = useState('name');
+    const [sortOrder, _setSortOrder] = useState('asc');
+
+    // Fetch all configs (paginated, server-side search)
     const {
         data: configsResponse,
         isLoading,
+        isFetching,
         error,
         refetch,
-    } = useGetAllConfigsQuery();
+    } = useGetAllConfigsQuery({
+        search: searchQuery || undefined,
+        category: 'WEBSITE_PAGE_CONFIG',
+        pageNumber,
+        pageSize,
+        sortField,
+        sortOrder,
+    });
 
-    // Extract configs array from response
-    const configs = configsResponse?.data?.data || configsResponse || [];
+    // Extract configs array and pagination info from response
+    const responseData = configsResponse?.data || configsResponse || {};
+    const configs = responseData?.data || responseData?.content || [];
+    const totalElements = responseData?.totalElements ?? configs.length;
+    const totalPages = responseData?.totalPages ?? Math.ceil(totalElements / pageSize);
+
+    // Handle search change (called from the list component with debounced value)
+    const handleSearchChange = useCallback((value) => {
+        setSearchQuery(value);
+        setPageNumber(1); // Reset to first page on new search
+    }, []);
+
+    // Handle page change
+    const handlePageChange = useCallback((newPage) => {
+        setPageNumber(newPage);
+    }, []);
+
+    // Handle page size change
+    const handlePageSizeChange = useCallback((newSize) => {
+        setPageSize(newSize);
+        setPageNumber(1);
+    }, []);
 
     // Handle config selection
     const handleConfigClick = useCallback((config) => {
@@ -111,8 +146,18 @@ function DynamicConfigPage() {
                         <DynamicConfigList
                             configs={configs}
                             isLoading={isLoading}
+                            isFetching={isFetching}
                             error={error}
                             onConfigClick={handleConfigClick}
+                            // Pagination
+                            pageNumber={pageNumber}
+                            pageSize={pageSize}
+                            totalElements={totalElements}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                            onPageSizeChange={handlePageSizeChange}
+                            // Search
+                            onSearchChange={handleSearchChange}
                         />
                     </motion.div>
                 )}

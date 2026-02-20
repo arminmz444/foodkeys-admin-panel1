@@ -7,16 +7,22 @@ const SubscriptionsApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
   endpoints: (builder) => ({
     getSubscriptions: builder.query({
       query: ({ pageNumber, pageSize, search, sort, filter }) => {
-        // Handle filter array - transform to string format expected by backend
-        let filterParam = "";
-        if (filter && Array.isArray(filter) && filter.length > 0) {
-          filterParam = JSON.stringify(filter);
-        } else if (filter && typeof filter === 'string') {
-          filterParam = filter;
-        }
-        
+        const sortParam =
+          sort && Object.entries(sort)?.length
+            ? encodeURIComponent(JSON.stringify(sort))
+            : '';
+
+        const filterParam =
+          filter && Object.entries(filter)?.length
+            ? encodeURIComponent(JSON.stringify(filter))
+            : '';
+
         return {
-          url: `/subscription?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${search || ""}&sort=${(sort && Object.entries(sort)?.length && JSON.stringify(sort)) || ""}&filter=${filterParam}`,
+          url: `/subscription?pageNumber=${pageNumber}` +
+               `&pageSize=${pageSize}` +
+               `&search=${encodeURIComponent(search ?? '')}` +
+               `&sort=${sortParam}` +
+               `&filter=${filterParam}`,
           method: "GET",
         };
       },

@@ -4,12 +4,33 @@ const addTagTypes = ['DynamicConfig', 'ConfigSchema', 'AllConfigs'];
 
 const dynamicConfigApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
     endpoints: (builder) => ({
-        // Get all configs list
+        // Get all configs list (paginated)
         getAllConfigs: builder.query({
-            query: () => ({
-                url: `/config`,
-                method: "GET",
-            }),
+            query: (params = {}) => {
+                const {
+                    search,
+                    schemaId,
+                    category = 'WEBSITE_PAGE_CONFIG',
+                    pageNumber = 1,
+                    pageSize = 10,
+                    sortField = 'name',
+                    sortOrder = 'asc',
+                } = params;
+
+                return {
+                    url: `/config`,
+                    method: "GET",
+                    params: {
+                        ...(search ? { search } : {}),
+                        ...(schemaId ? { schemaId } : {}),
+                        category,
+                        pageNumber,
+                        pageSize,
+                        sortField,
+                        sortOrder,
+                    },
+                };
+            },
             providesTags: ['AllConfigs'],
         }),
 

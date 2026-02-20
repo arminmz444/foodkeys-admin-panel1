@@ -12,7 +12,6 @@ import Divider from "@mui/material/Divider";
 
 import { useDispatch } from "react-redux";
 import DataTableBottomToolbar from "app/shared-components/data-table/DataTableBottomToolbar.jsx";
-import FuseScrollbars from "@fuse/core/FuseScrollbars/index.js";
 
 import {
 	Button,
@@ -873,40 +872,26 @@ function GenericCrudTable(props) {
 				backgroundColor: "#fff",
 				boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
 			}}
-			className="w-full max-w-screen flex flex-col min-h-full"
+			className="w-full max-w-screen flex flex-col h-full overflow-auto"
 		>
-			{/* {createItemProps && ( */}
-			{/*	<div className="flex justify-start p-16"> */}
-			{/*		<Button */}
-			{/*			variant="contained" */}
-			{/*			color="secondary" */}
-			{/*			onClick={openCreateDialog} */}
-			{/*		> */}
-			{/*			{createItemProps.buttonLabel || 'ایجاد آیتم جدید'} */}
-			{/*		</Button> */}
-			{/*	</div> */}
-			{/* )} */}
-
-			<FuseScrollbars className="grow overflow-x-auto">
-				<MaterialReactTable
-					table={table}
-					enablePagination
-					manualFiltering
-					muiTableHeadProps={{
-						sx: {
-							backgroundColor: "#000",
-							color: "#111", // Change the background color of the header cells
-						},
-					}}
-					columnFilterDisplayMode="popover"
-					columnResizeDirection="rtl"
-					onGlobalFilterChange={setGlobalFilter}
-					manualGlobalFilter
-					enableFilterMatchHighlighting
-					// globalFilterFn="noop"
-					state={{ globalFilter }}
-				/>
-			</FuseScrollbars>
+			<MaterialReactTable
+				table={table}
+				enablePagination
+				manualFiltering
+				muiTableHeadProps={{
+					sx: {
+						backgroundColor: "#000",
+						color: "#111", // Change the background color of the header cells
+					},
+				}}
+				columnFilterDisplayMode="popover"
+				columnResizeDirection="rtl"
+				onGlobalFilterChange={setGlobalFilter}
+				manualGlobalFilter
+				enableFilterMatchHighlighting
+				// globalFilterFn="noop"
+				state={{ globalFilter }}
+			/>
 
 			{createItemProps && (
 				<Dialog

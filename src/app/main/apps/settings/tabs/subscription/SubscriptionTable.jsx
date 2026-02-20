@@ -890,11 +890,12 @@ function SubscriptionTable() {
 		() => [
 			{
 				accessorFn: (row) => "FK_SUB_" + row?.id,
+				accessorKey: "id",
 				header: "شناسه اشتراک",
 				size: 160
 			},
 			{
-				accessorKey: "userId",
+				accessorKey: "userInfo",
 				header: "شناسه کاربر",
 				size: 200,
 				Cell: ({ row }) => (
