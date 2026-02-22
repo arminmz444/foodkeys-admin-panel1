@@ -9,6 +9,7 @@ export const addTagTypes = [
 	"contacts_tag",
 	"contacts_tags",
 	"countries",
+	"users",
 ];
 const ContactsApi = api
 	.enhanceEndpoints({
@@ -16,7 +17,7 @@ const ContactsApi = api
 	})
 	.injectEndpoints({
 		endpoints: (build) => ({
-			getUsersList: build.query({
+			getAllUsersList: build.query({
 				query: () => ({ url: `/user` }),
 				providesTags: ["users"],
 			}),
@@ -95,7 +96,7 @@ const ContactsApi = api
 	});
 export default ContactsApi;
 export const {
-	useGetUsersListQuery,
+	useGetAllUsersListQuery,
 	useGetContactsItemQuery,
 	useUpdateContactsItemMutation,
 	useDeleteContactsItemMutation,

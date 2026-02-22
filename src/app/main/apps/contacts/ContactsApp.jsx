@@ -9,7 +9,7 @@ import {
 	useGetContactsListQuery,
 	useGetContactsCountriesQuery,
 	useGetContactsTagsQuery,
-	useGetUsersListQuery
+	useGetAllUsersListQuery
 } from './ContactsApi';
 import ContactsSidebarContent from './ContactsSidebarContent';
 
@@ -27,7 +27,7 @@ function ContactsApp() {
 	const routeParams = useParams();
 	const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
 	const isMobile = useThemeMediaQuery((theme) => theme.breakpoints.down('lg'));
-	useGetUsersListQuery();
+	useGetAllUsersListQuery();
 	useGetContactsListQuery();
 	useGetContactsCountriesQuery();
 	useGetContactsTagsQuery();

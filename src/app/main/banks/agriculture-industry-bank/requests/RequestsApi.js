@@ -86,7 +86,7 @@ const UserApi = api
 				}),
 				invalidatesTags: ['eCommerce_order', 'eCommerce_orders']
 			}),
-			getUsersList: build.query({
+			getAllUsersList: build.query({
 				query: () => ({ url: `/user/` }),
 				providesTags: ['users_list']
 			})
@@ -106,5 +106,5 @@ export const {
 	useDeleteECommerceOrderMutation,
 	useDeleteECommerceOrdersMutation,
 	useCreateECommerceProductMutation,
-	useGetUsersListQuery
+	useGetAllUsersListQuery
 } = UserApi;

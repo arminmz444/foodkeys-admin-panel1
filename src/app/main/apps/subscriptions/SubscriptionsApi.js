@@ -13,7 +13,7 @@ const SubscriptionsApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
             : '';
 
         const filterParam =
-          filter && Object.entries(filter)?.length
+          filter && filter.length
             ? encodeURIComponent(JSON.stringify(filter))
             : '';
 

@@ -72,8 +72,15 @@ function Company() {
     if (company) {
       const location = company.location || {}
       const registrantId = company.registrant
+      // Map websites from API response; fallback to legacy single website field
+      let websites = company.websites;
+      if ((!websites || websites.length === 0) && company.website) {
+        websites = [{ name: company.website, visibility: 'FK_WEBSITE:ADMIN_PANEL' }];
+      }
+
       reset({ ...company, 
         registrantId,
+        websites: websites || [],
         officeState: location.officeState,
         officeCity: location.officeCity,
         officeLocation: location.officeLocation,

@@ -153,14 +153,16 @@ import NavLinkAdapter from "@fuse/core/NavLinkAdapter";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import Box from "@mui/material/Box";
 import { useAppDispatch, useAppSelector } from "app/store/hooks";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import debounce from "lodash/debounce";
 import {
   setSearchText,
+  setInputSearchText,
   resetSearchText,
   selectSearchText,
+  selectInputSearchText,
 } from "./usersAppSlice";
 import {
-  selectFilteredUserList,
   useGetUsersListQuery,
 } from "./UserApi";
 
@@ -170,15 +172,42 @@ import {
 function UsersHeader() {
   const dispatch = useAppDispatch();
   const searchText = useAppSelector(selectSearchText);
-  const { data, isLoading } = useGetUsersListQuery();
-  const filteredData = useAppSelector(selectFilteredUserList(data?.data));
-  
-  // Reset search text when component unmounts
+  const inputSearchText = useAppSelector(selectInputSearchText);
+
+  // Query with current search text to get totalElements for the count display
+  const { data, isLoading } = useGetUsersListQuery({
+    pageNumber: 1,
+    pageSize: 10,
+    search: searchText,
+    sortBy: "firstName",
+    sortDir: "asc",
+  });
+
+  // Debounced dispatch: updates the actual search text after 400ms of no typing
+  const debouncedSetSearch = useMemo(
+    () =>
+      debounce((value) => {
+        dispatch(setSearchText(value));
+      }, 400),
+    [dispatch]
+  );
+
+  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
+      debouncedSetSearch.cancel();
       dispatch(resetSearchText());
     };
-  }, [dispatch]);
+  }, [dispatch, debouncedSetSearch]);
+
+  const handleSearchChange = useCallback(
+    (ev) => {
+      const value = ev.target.value;
+      dispatch(setInputSearchText(value));
+      debouncedSetSearch(value);
+    },
+    [dispatch, debouncedSetSearch]
+  );
 
   if (isLoading) {
     return null;
@@ -204,7 +233,7 @@ function UsersHeader() {
             className="text-14 font-medium mr-2"
             color="text.secondary"
           >
-            {`${filteredData?.length || 0} کاربر`}
+            {`${data?.totalElements ?? 0} کاربر`}
           </Typography>
         </motion.span>
       </div>
@@ -223,11 +252,11 @@ function UsersHeader() {
             placeholder="جستجوی کاربران"
             className="flex flex-grow px-16"
             disableUnderline
-            value={searchText}
+            value={inputSearchText}
             inputProps={{
               "aria-label": "جستجو",
             }}
-            onChange={(ev) => dispatch(setSearchText(ev))}
+            onChange={handleSearchChange}
           />
         </Box>
         <Button

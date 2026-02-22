@@ -284,7 +284,7 @@ function SubscriptionTable() {
 					}
 				},
 			});
-		} else if (status === 'INACTIVE' || status === 'DISABLE') {
+		} else if (status === 'DISABLE') {
 			actions.push({
 				icon: <FaUserSlash size={16} color="orange" />,
 				label: 'فعال سازی',
@@ -401,35 +401,59 @@ function SubscriptionTable() {
 			{
 				header: "وضعیت",
 				accessorKey: "subscriptionStatus",
-				size: 130,
-				accessorFn: (row) => {
-					switch (row?.subscriptionStatus) {
+				size: 160,
+				filterVariant: "select",
+				filterSelectOptions: [
+					{ label: "فعال", value: "ACTIVE" },
+					{ label: "در انتظار تایید", value: "PENDING" },
+					// { label: "غیرفعال", value: "INACTIVE" },
+					{ label: "غیرفعال", value: "DISABLE" },
+					{ label: "منقضی شده", value: "EXPIRED" },
+				],
+				Cell: ({ row }) => {
+					switch (row.original?.subscriptionStatus) {
 						case "ACTIVE":
 							return <EntityStatusField name="فعال" colorClsx="bg-green text-white" />;
 						case "PENDING":
 							return <EntityStatusField name="در انتظار تایید" colorClsx="bg-orange-700 text-white" />;
-						case "INACTIVE":
-							return <EntityStatusField name="غیرفعال" colorClsx="bg-red-700 text-white" />;
+						// case "INACTIVE":
+							// return <EntityStatusField name="غیرفعال" colorClsx="bg-red-700 text-white" />;
 						case "DISABLE":
 							return <EntityStatusField name="غیرفعال" colorClsx="bg-gray-800 text-white" />;
+						case "EXPIRED":
+							return <EntityStatusField name="منقضی شده" colorClsx="bg-purple-700 text-white" />;
 						default:
 							return <EntityStatusField name="نامشخص" colorClsx="bg-gray-500 text-white" />;
 					}
 				}
 			},
 			{
-				accessorKey: "startDateStr",
-				size: 150,
+				accessorFn: (row) => row.startDate ? new Date(row.startDate) : null,
+				id: "startDate",
+				size: 180,
 				Cell: ({ row }) => <div dir="rtl">{row.original.startDateStr}</div>,
 				header: "تاریخ شروع",
-				enableEditing: false
+				enableEditing: false,
+				filterVariant: "date",
+				muiFilterDatePickerProps: {
+					slotProps: {
+						textField: { size: "small", variant: "outlined" },
+					},
+				},
 			},
 			{
-				accessorKey: "endDateStr",
-				size: 150,
+				accessorFn: (row) => row.endDate ? new Date(row.endDate) : null,
+				id: "endDate",
+				size: 180,
 				Cell: ({ row }) => <div dir="rtl">{row.original.endDateStr}</div>,
 				header: "تاریخ پایان",
-				enableEditing: false
+				enableEditing: false,
+				filterVariant: "date",
+				muiFilterDatePickerProps: {
+					slotProps: {
+						textField: { size: "small", variant: "outlined" },
+					},
+				},
 			}
 		],
 		[]
@@ -453,11 +477,21 @@ function SubscriptionTable() {
 					saveToStore={false}
 					enableRowAction
 					enableBuiltInEditing={false}
-					// enableFilters
-					// enableGlobalFilter
-					// enableColumnFilters
-					// enableFacetedValues
-					// columnFilterDisplayMode="popover"
+					transformColumnFilters={(columnFilters) =>
+						columnFilters.map((filter) => {
+							const { id, value } = filter;
+							if (value instanceof Date) {
+								return `${id}:EQUALS:${value.toISOString()}`;
+							}
+							if (Array.isArray(value)) {
+								if (value.length === 2 && value[0] instanceof Date) {
+									return `${id}:BETWEEN:${value[0].toISOString()},${value[1]?.toISOString() || ''}`;
+								}
+								return `${id}:IN:${value.join(',')}`;
+							}
+							return `${id}:EQUALS:${value}`;
+						})
+					}
 					serviceIdentifier="subscriptionList"
 					renderTopToolbarCustomActions={() => (<div />)}
 				/>

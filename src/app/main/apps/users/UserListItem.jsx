@@ -41,6 +41,7 @@ function UserListItem(props) {
             primary: "font-800 leading-5 truncate text-lg",
           }}
           primary={`${user.firstName} ${user.lastName}`}
+          secondaryTypographyProps={{ component: "div" }}
           secondary={
             <div className="flex flex-col">
               <Typography

@@ -11,37 +11,37 @@ import UserModel from '../auth/user/models/UserModel';
 export const loadUserFromStorage = () => {
 	try {
 		if (typeof window !== "undefined" && window.localStorage) {
-			const userData = localStorage.getItem("user_data");
-			if (userData) {
-				const parsedUser = JSON.parse(userData);
+			const storedData = localStorage.getItem("user_data");
+			if (storedData) {
+				const parsedUser = JSON.parse(storedData);
 				console.log("Loaded user data from localStorage:", parsedUser);
 				
 				// Handle different user data structures
-				let userData = parsedUser;
+				let processedUser = parsedUser;
 				
 				// If the data is from /me endpoint response, extract the user object
 				if (parsedUser && parsedUser.user) {
-					userData = parsedUser.user;
+					processedUser = parsedUser.user;
 					// Merge accesses and roles from the response
 					if (parsedUser.accesses) {
-						userData.accesses = parsedUser.accesses;
+						processedUser.accesses = parsedUser.accesses;
 					}
 					if (parsedUser.roles) {
-						userData.roles = parsedUser.roles;
+						processedUser.roles = parsedUser.roles;
 					}
 				} else if (parsedUser && parsedUser.data && parsedUser.data.user) {
-					userData = parsedUser.data.user;
+					processedUser = parsedUser.data.user;
 					// Merge accesses and roles from the response
 					if (parsedUser.data.accesses) {
-						userData.accesses = parsedUser.data.accesses;
+						processedUser.accesses = parsedUser.data.accesses;
 					}
 					if (parsedUser.data.roles) {
-						userData.roles = parsedUser.data.roles;
+						processedUser.roles = parsedUser.data.roles;
 					}
 				}
 				
 				// Use UserModel to ensure proper structure
-				const structuredUser = UserModel(userData);
+				const structuredUser = UserModel(processedUser);
 				return structuredUser;
 			}
 		}

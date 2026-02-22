@@ -1,5 +1,9 @@
 const locale = {
 	APPLICATIONS: 'Applications',
+	BULK_MESSAGING: 'Bulk Messaging',
+	SUB_BULK_MESSAGING: 'Bulk messaging to users section',
+	BULK_MESSAGING_COMPOSE: 'New Message',
+	BULK_MESSAGING_TASKS: 'Message Tasks',
 	DASHBOARDS: 'Dashboards',
 	CALENDAR: 'Calendar',
 	ECOMMERCE: 'E-Commerce',

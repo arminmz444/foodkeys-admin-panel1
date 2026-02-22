@@ -1,7 +1,4 @@
-import { createSelector } from "@reduxjs/toolkit";
 import { apiService as api } from "app/store/apiService";
-import FuseUtils from "@fuse/utils";
-import { selectSearchText } from "./usersAppSlice.js";
 
 export const addTagTypes = [
   "User",
@@ -10,6 +7,7 @@ export const addTagTypes = [
   "UserRole",
   "UserAccess",
   "RoleAccess",
+  "UserCredit",
 ];
 
 const UserApi = api
@@ -19,10 +17,44 @@ const UserApi = api
   .injectEndpoints({
     endpoints: (build) => ({
       getUsersList: build.query({
-        query: (paginationParams) => ({ 
-          url: `/user`,
-          params: paginationParams
-        }),
+        query: ({ pageNumber = 1, pageSize = 10, search = '', sortBy = 'firstName', sortDir = 'asc' } = {}) => {
+          const params = { pageNumber, pageSize, sortBy, sortDir };
+          // Only include search param when non-empty
+          if (search) {
+            params.search = search;
+          }
+          return { url: `/user`, params };
+        },
+        // Serialize cache key based on search/sort only (NOT pageNumber), so
+        // all pages for the same search+sort share one cache entry.
+        serializeQueryArgs: ({ queryArgs }) => {
+          const { search = '', sortBy = 'firstName', sortDir = 'asc' } = queryArgs || {};
+          return `usersList-${search}-${sortBy}-${sortDir}`;
+        },
+        // Merge new page data into the existing cache entry.
+        // NOTE: RTK Query's merge runs inside Immer — mutate currentCache directly.
+        merge: (currentCache, newResponse, { arg }) => {
+          const pageNumber = arg?.pageNumber ?? 1;
+          if (pageNumber === 1) {
+            // First page or new search: replace everything
+            currentCache.data = newResponse.data;
+          } else {
+            // Subsequent pages: append data
+            currentCache.data.push(...(newResponse.data || []));
+          }
+          // Always update pagination metadata
+          currentCache.totalPages = newResponse.totalPages;
+          currentCache.totalElements = newResponse.totalElements;
+          currentCache.pageSize = newResponse.pageSize;
+          currentCache.pageNumber = newResponse.pageNumber;
+        },
+        // Re-fetch when pageNumber changes (even though cache key is the same).
+        forceRefetch: ({ currentArg, previousArg }) => {
+          return currentArg?.pageNumber !== previousArg?.pageNumber
+            || currentArg?.search !== previousArg?.search
+            || currentArg?.sortBy !== previousArg?.sortBy
+            || currentArg?.sortDir !== previousArg?.sortDir;
+        },
         providesTags: (result) =>
           result && result.data && Array.isArray(result.data)
             ? [
@@ -31,13 +63,13 @@ const UserApi = api
               ]
             : [{ type: "User", id: "LIST" }],
         transformResponse: (response) => {
-          const data = { data: response?.data };
+          const data = { data: response?.data || [] };
 
           if (response && response.pagination) {
             data.totalPages = response.pagination.totalPages;
             data.totalElements = response.pagination.totalElements;
             data.pageSize = response.pagination.pageSize;
-            data.pageIndex = response.pagination.pageIndex;
+            data.pageNumber = response.pagination.pageNumber;
           }
 
           return data;
@@ -156,6 +188,23 @@ const UserApi = api
         query: (provinceId) => ({ url: `/province/${provinceId}/city` }),
         transformResponse: (response) => response.data,
       }),
+      // Credit endpoints
+      getUserCredit: build.query({
+        query: (userId) => ({ url: `/user/${userId}/credit` }),
+        transformResponse: (response) => response?.data,
+        providesTags: (result, error, id) => [{ type: "UserCredit", id }],
+      }),
+      updateUserCredit: build.mutation({
+        query: ({ userId, amount, ghostModeOn, operation }) => ({
+          url: `/user/${userId}/credit`,
+          method: "POST",
+          data: { amount, ghostModeOn, operation },
+        }),
+        transformResponse: (response) => response?.data,
+        invalidatesTags: (result, error, { userId }) => [
+          { type: "UserCredit", id: userId },
+        ],
+      }),
     }),
     overrideExisting: false,
   });
@@ -178,51 +227,27 @@ export const {
   useRemoveAccessFromUserMutation,
   useGetProvincesQuery,
   useGetCitiesQuery,
+  useGetUserCreditQuery,
+  useUpdateUserCreditMutation,
 } = UserApi;
 
 /**
- * Select filtered users
+ * Group users by the first letter of their firstName.
+ * The data is already sorted by the API (sortBy=firstName, sortDir=asc),
+ * so we only need to bucket them by their first character.
  */
-export const selectFilteredUserList = (users) =>
-  createSelector([selectSearchText], (searchText) => {
-    if (!users) {
-      return [];
+export function groupUsersByFirstLetter(users) {
+  if (!users || users.length === 0) {
+    return {};
+  }
+
+  return users.reduce((acc, user) => {
+    const group = user?.firstName?.[0] || "#";
+    if (!acc[group]) {
+      acc[group] = { group, children: [user] };
+    } else {
+      acc[group].children.push(user);
     }
-
-    if (searchText.length === 0) {
-      return users;
-    }
-
-    return FuseUtils.filterArrayByString(users, searchText);
-  });
-
-/**
- * Select grouped users
- */
-export const selectGroupedFilteredUsers = (users) =>
-  createSelector([selectFilteredUserList(users)], (users) => {
-    if (!users) {
-      return [];
-    }
-
-    const sortedUsers = [...users]?.sort((a, b) =>
-      a?.firstName?.localeCompare(b.firstName, "fa", { sensitivity: "base" })
-    );
-    
-    const groupedObject = sortedUsers?.reduce((r, e) => {
-      // get first letter of name of current element
-      const group = e?.firstName?.[0] || "#";
-
-      // if there is no property in accumulator with this letter create it
-      if (!r[group]) r[group] = { group, children: [e] };
-      // if there is push current element to children array for that letter
-      else {
-        r[group]?.children?.push(e);
-      }
-
-      // return accumulator
-      return r;
-    }, {});
-    
-    return groupedObject;
-  });
+    return acc;
+  }, {});
+}

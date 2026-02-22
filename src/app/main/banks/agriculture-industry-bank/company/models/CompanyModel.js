@@ -110,6 +110,7 @@ const CompanyModel = (data) => {
     eitaaPhoneNo: data?.eitaaPhoneNo || "",
     rubikaPhoneNo: data?.rubikaPhoneNo || "",
     website: data?.website || "",
+    websites: data?.websites || [],
     socialMedias: data?.socialMedias || [],
     
     // Display settings

@@ -17,6 +17,7 @@ import {
   useDeleteUserMutation,
 } from "../UserApi.js";
 import RoleAccessManagement from "../RoleAccessManagement";
+import UserCreditSection from "./UserCreditSection";
 import { getServerFile } from "src/utils/string-utils.js";
 import { Chip } from "@mui/material";
 
@@ -324,6 +325,16 @@ function UserView() {
           <Divider className="mt-8 mb-24" />
           
           <RoleAccessManagement userId={userId} />
+          
+          {/* Credit Management Section */}
+          <Typography className="mt-32 text-2xl font-bold truncate">
+            مدیریت اعتبار
+          </Typography>
+          <Divider className="mt-8 mb-24" />
+          
+          <UserCreditSection 
+            userId={userId} 
+          />
         </div>
       </div>
     </>

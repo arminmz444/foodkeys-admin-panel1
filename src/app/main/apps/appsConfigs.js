@@ -33,6 +33,7 @@ import ArchiveTaskAppConfig from "./archive/ArchiveTaskAppConfig";
 import ExcelTemplateAppConfig from "./template-manager/excel-template-manager/ExcelTemplateAppConfig.jsx";
 import SubscriptionsAppConfig from "./subscriptions/SubscriptionsAppConfig";
 import WeblogAppConfig from "./weblog-management/WeblogAppConfig.jsx";
+import BulkMessagingAppConfig from "./bulk-messaging/BulkMessagingAppConfig";
 /**
  * The payments of application configurations.
  */
@@ -71,6 +72,7 @@ const appsConfigs = [
   ArchiveTaskAppConfig,
   ExcelTemplateAppConfig,
   SubscriptionsAppConfig,
-  WeblogAppConfig
+  WeblogAppConfig,
+  BulkMessagingAppConfig
 ];
 export default appsConfigs;

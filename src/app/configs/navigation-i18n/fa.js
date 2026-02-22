@@ -1,5 +1,9 @@
 const locale = {
   MESSAGE_MANAGER: "مدیریت پیام‌ها",
+  BULK_MESSAGING: "ارسال پیام گروهی",
+  SUB_BULK_MESSAGING: "بخش ارسال پیام‌های گروهی به کاربران",
+  BULK_MESSAGING_COMPOSE: "ارسال جدید",
+  BULK_MESSAGING_TASKS: "لیست وظایف ارسال",
   WHITEBOARD: "تخته هوشمند",
   PDF_VIEWER: "نمایشگر حرفه‌ای PDF",
   SUB_PDF_VIEWER: "قابلیت ایجاد هرگونه PDF، مانند ایجاد فرم‌ ورودی اطلاعات در سند PDF",

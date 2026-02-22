@@ -1,4 +1,4 @@
-import { Button, InputAdornment, Typography } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, InputAdornment, Typography } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useEffect } from "react";
@@ -24,6 +24,9 @@ function ContactInfoTab() {
 
     const { fields: emailFields, append: appendEmail, remove: removeEmail } =
         useFieldArray({ control, name: "emails" });
+
+    const { fields: websiteFields, append: appendWebsite, remove: removeWebsite } =
+        useFieldArray({ control, name: "websites" });
 
     return (
         <div>
@@ -685,22 +688,85 @@ function ContactInfoTab() {
                 )}
             </div>
 
-            <Controller
-                name="website"
-                control={control}
-                render={({ field }) => (
-                    <TextField
-                        {...field}
-                        className="mt-8 mb-16 sm:mx-4"
-                        error={!!errors.website}
-                        helperText={errors?.website?.message || "(مثال: www.foodkeys.com)"}
-                        label="وبسایت"
-                        id="website"
-                        variant="outlined"
-                        fullWidth
-                    />
+            {/* Websites - Array Field (up to 5) */}
+            <div className="flex flex-col space-y-2 mt-16">
+                <label className="font-medium text-gray-700 dark:text-gray-600">
+                    وبسایت‌ها
+                </label>
+
+                {websiteFields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2 space-x-2">
+                        <Controller
+                            name={`websites.${index}.name`}
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label={`آدرس وبسایت ${index + 1}`}
+                                    placeholder="www.example.com"
+                                    variant="outlined"
+                                    fullWidth
+                                    className="me-10 mt-16"
+                                    error={!!errors?.websites?.[index]?.name}
+                                    helperText={errors?.websites?.[index]?.name?.message || "(مثال: www.foodkeys.com)"}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <FuseSvgIcon size={20}>heroicons-solid:globe-alt</FuseSvgIcon>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                />
+                            )}
+                        />
+
+                        <Controller
+                            name={`websites.${index}.visibility`}
+                            control={control}
+                            render={({ field }) => (
+                                <FormControlLabel
+                                    className="mt-16 whitespace-nowrap min-w-160"
+                                    control={
+                                        <Checkbox
+                                            checked={field.value === "FK_WEBSITE:ADMIN_PANEL"}
+                                            onChange={(e) => {
+                                                field.onChange(
+                                                    e.target.checked
+                                                        ? "FK_WEBSITE:ADMIN_PANEL"
+                                                        : "ADMIN_PANEL"
+                                                );
+                                            }}
+                                            color="secondary"
+                                        />
+                                    }
+                                    label="نمایش در وبسایت"
+                                />
+                            )}
+                        />
+
+                        <Button
+                            onClick={() => removeWebsite(index)}
+                            variant="flat"
+                            color="danger"
+                            className="mt-16"
+                        >
+                            <BiMinus size={30} color="red" className="text-red-light" />
+                        </Button>
+                    </div>
+                ))}
+
+                {websiteFields.length < 5 && (
+                    <Button
+                        className="group inline-flex items-center mt-8 -ml-4 py-2 px-4 rounded cursor-pointer"
+                        onClick={() => appendWebsite({ name: '', visibility: 'FK_WEBSITE:ADMIN_PANEL' })}
+                    >
+                        <FuseSvgIcon size={20}>heroicons-solid:plus-circle</FuseSvgIcon>
+                        <span className="ml-8 font-medium text-secondary group-hover:underline">
+                            {"افزودن وبسایت جدید"}
+                        </span>
+                    </Button>
                 )}
-            />
+            </div>
         </div>
     );
 }

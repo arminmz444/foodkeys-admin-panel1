@@ -81,7 +81,7 @@ import usersAppSlice from "./usersAppSlice";
 import UsersList from "./UsersList";
 import UsersHeader from "./UsersHeader";
 import UsersSidebarContent from "./UsersSidebarContent";
-import { useGetRolesListQuery, useGetUsersItemQuery, useGetUsersListQuery } from "./UserApi";
+import { useGetRolesListQuery, useGetUsersItemQuery } from "./UserApi";
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
   "& .FusePageSimple-header": {
