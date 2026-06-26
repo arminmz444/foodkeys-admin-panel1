@@ -17,7 +17,12 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-  Divider
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Tooltip
 } from "@mui/material";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import {
@@ -29,7 +34,10 @@ import {
   useRemoveRoleFromUserMutation,
   useAddAccessToUserMutation,
   useRemoveAccessFromUserMutation,
-  useUpdateUserAccessesMutation
+  useUpdateUserAccessesMutation,
+  groupAccessesByEntity,
+  sortAccessesByScope,
+  filterDirectlyAssignableAccesses, getOperationDisplayName
 } from "./UserApi";
 import { showMessage } from "@fuse/core/FuseMessage/fuseMessageSlice";
 import { useAppDispatch } from "app/store/hooks";
@@ -88,9 +96,11 @@ function RoleAccessManagement({ userId }) {
 
   // Set selected roles and accesses when data is loaded
   useEffect(() => {
+    debugger
     if (userRoles?.data) {
       const roleIds = rolesList?.data?.filter(role => 
-        userRoles.data.includes(role.name)
+        // userRoles.data.includes(role.name)
+          userRoles?.data?.some(r => r.name === role.name)
       ).map(role => role.id);
       setSelectedRoles(roleIds || []);
     }
@@ -205,12 +215,22 @@ function RoleAccessManagement({ userId }) {
     if (!searchText) return items;
     return items.filter(item => 
       (item.name && item.name.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.displayName && item.displayName.toLowerCase().includes(searchText.toLowerCase()))
+      (item.displayName && item.displayName.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.description && item.description.toLowerCase().includes(searchText.toLowerCase()))
     );
   };
 
-  const filteredRoles = filterItems(rolesList?.data || [], searchText);
-  const filteredAccesses = filterItems(accessesList?.data || [], searchText);
+  // Filter roles: exclude system roles (COMMON_CRM_ROLE / BUSINESS_ROLE)
+  // These can only be assigned via roles, not directly
+  const assignableRoles = (rolesList?.data || []).filter(role => !role.hidden);
+  const filteredRoles = filterItems(assignableRoles, searchText);
+  debugger
+  // Filter accesses: only show directly assignable ones
+  const assignableAccesses = filterDirectlyAssignableAccesses(accessesList?.data || []);
+  const filteredAccesses = filterItems(assignableAccesses, searchText);
+  
+  // Group accesses by entity for better UX
+  const groupedAccesses = groupAccessesByEntity(filteredAccesses);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -254,10 +274,20 @@ function RoleAccessManagement({ userId }) {
             </Box>
           ) : (
             <>
+              {(rolesList?.data || []).some(role => role.hidden) && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  نقش‌های سیستمی (مانند ADMIN، EMPLOYEE) و نقش‌های کسب‌وکار از طریق مدیریت نقش‌ها قابل تخصیص هستند.
+                  این نقش‌ها نمی‌توانند مستقیماً به کاربر اختصاص یابند.
+                </Alert>
+              )}
+              
               <List sx={{ width: '100%' }}>
                 {filteredRoles.map((role) => {
+                  console.log(role)
                   const isSelected = selectedRoles.indexOf(role.id) !== -1;
                   const isAssigned = userRoles.data?.includes(role.name);
+                  const roleTypeLabel = role.roleType === 'SYSTEM' ? 'سیستمی' : 
+                                       role.roleType === 'BUSINESS' ? 'کسب‌وکار' : 'سفارشی';
                   
                   return (
                     <ListItem 
@@ -272,20 +302,40 @@ function RoleAccessManagement({ userId }) {
                     >
                       <ListItemText
                         primary={
-                          <Typography variant="subtitle1">
-                            {role.displayName || role.name}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1">
+                              {role.displayName || role.name}
+                            </Typography>
                             {isAssigned && (
                               <Chip 
                                 size="small" 
                                 label="فعال" 
                                 color="success" 
                                 variant="outlined"
-                                sx={{ ml: 1 }}
                               />
                             )}
-                          </Typography>
+                            {role.roleType && (
+                              <Chip 
+                                size="small" 
+                                label={roleTypeLabel} 
+                                color={role.roleType === 'CUSTOM' ? 'primary' : 'default'}
+                                variant="filled"
+                              />
+                            )}
+                          </Box>
                         }
-                        secondary={role.name}
+                        secondary={
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {role.description || role.name}
+                            </Typography>
+                            {role.accesses && role.accesses.length > 0 && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                شامل {role.accesses.length} دسترسی
+                              </Typography>
+                            )}
+                          </Box>
+                        }
                       />
                     </ListItem>
                   );
@@ -311,43 +361,128 @@ function RoleAccessManagement({ userId }) {
             </Box>
           ) : (
             <>
-              <List sx={{ width: '100%' }}>
-                {filteredAccesses.map((access) => {
-                  const isSelected = selectedAccesses.indexOf(access.id) !== -1;
-                  const isAssigned = userAccesses.data?.includes(access.name);
-                  
+              <Alert severity="info" sx={{ mb: 2 }}>
+                دسترسی‌های دسته‌بندی شده بر اساس موجودیت (Entity) و عملیات (Operation) نمایش داده می‌شوند.
+                دسترسی‌های با محدوده ONLINE_POLICY_CHECK برای رکوردها یا محدوده‌های خاصی اعمال می‌شوند.
+              </Alert>
+              
+              {Object.keys(groupedAccesses).length === 0 ? (
+                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                  دسترسی قابل نمایشی وجود ندارد
+                </Typography>
+              ) : (
+                // const { data: rolesList = { data: [] }, isLoading: isLoadingRoles } = useGetRolesListQuery();
+
+                Object.entries(groupedAccesses).map(([entityName, accessObj]) => {
+                  const displayName = accessObj?.displayName || "سایر";
+                  const operations = accessObj?.operations || [];
+
                   return (
-                    <ListItem 
-                      key={access.id}
-                      secondaryAction={
-                        <Checkbox
-                          edge="end"
-                          onChange={() => handleAccessToggle(access.id)}
-                          checked={isSelected}
-                        />
-                      }
-                    >
-                      <ListItemText
-                        primary={
-                          <Typography variant="subtitle1">
-                            {access.displayName || access.name}
-                            {isAssigned && (
-                              <Chip 
-                                size="small" 
-                                label="فعال" 
-                                color="success" 
-                                variant="outlined"
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </Typography>
-                        }
-                        secondary={access.name}
-                      />
-                    </ListItem>
-                  );
-                })}
-              </List>
+                  <Accordion key={entityName} defaultExpanded={Object.keys(groupedAccesses).length === 1}>
+                    <AccordionSummary expandIcon={<FuseSvgIcon>heroicons-outline:chevron-down</FuseSvgIcon>}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {displayName}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {Object.entries(operations).map(([operation, accesses]) => {
+                        const sortedAccesses = sortAccessesByScope(accesses);
+                        
+                        return (
+                          <Box key={operation} sx={{ mb: 2 }}>
+                            <Typography 
+                              variant="subtitle2" 
+                              sx={{ 
+                                fontWeight: 600, 
+                                mb: 1, 
+                                color: 'text.secondary',
+                                textTransform: 'uppercase'
+                              }}
+                            >
+                              {getOperationDisplayName(operation)}
+                            </Typography>
+                            <List dense>
+                              {sortedAccesses.map((access) => {
+                                const isSelected = selectedAccesses.indexOf(access.id) !== -1;
+                                const isAssigned = userAccesses.data?.includes(access.name);
+                                const scopeLabel = access.scope === 'ALL' ? 'همه' : 
+                                                  access.scope === 'OWN' ? 'خود' : 
+                                                  access.scope === 'ONLINE_POLICY_CHECK' ? 'شرطی' : access.scope;
+                                const scopeColor = access.scope === 'ALL' ? 'error' : 
+                                                  access.scope === 'OWN' ? 'warning' : 
+                                                  access.scope === 'ONLINE_POLICY_CHECK' ? 'info' : 'default';
+                                
+                                return (
+                                  <ListItem 
+                                    key={access.id}
+                                    sx={{ 
+                                      pl: 4, 
+                                      borderLeft: isAssigned ? 3 : 0,
+                                      borderColor: 'success.main'
+                                    }}
+                                    secondaryAction={
+                                      <Checkbox
+                                        edge="end"
+                                        onChange={() => handleAccessToggle(access.id)}
+                                        checked={isSelected}
+                                      />
+                                    }
+                                  >
+                                    <ListItemText
+                                      primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                          <Typography variant="body2">
+                                            {access.displayName || access.name}
+                                          </Typography>
+                                          <Chip 
+                                            size="small" 
+                                            label={scopeLabel} 
+                                            color={scopeColor}
+                                            variant="outlined"
+                                          />
+                                          {isAssigned && (
+                                            <Chip 
+                                              size="small" 
+                                              label="فعال" 
+                                              color="success" 
+                                              variant="filled"
+                                            />
+                                          )}
+                                        </Box>
+                                      }
+                                      secondary={
+                                        <Box>
+                                          {access.description && (
+                                            <Typography variant="caption" color="text.secondary">
+                                              {access.description}
+                                            </Typography>
+                                          )}
+                                          {access.scope === 'ONLINE_POLICY_CHECK' && access.jsonPath && (
+                                            <Tooltip title={`شرط: ${access.jsonPath} ${access.policyOperator} ${access.targetValue}`}>
+                                              <Typography 
+                                                variant="caption" 
+                                                color="info.main" 
+                                                sx={{ display: 'block', mt: 0.5, cursor: 'help' }}
+                                              >
+                                                دارای شرط سیاست (Policy)
+                                              </Typography>
+                                            </Tooltip>
+                                          )}
+                                        </Box>
+                                      }
+                                    />
+                                  </ListItem>
+                                );
+                              })}
+                            </List>
+                          </Box>
+                        );
+                      })}
+                    </AccordionDetails>
+                  </Accordion>
+                )})
+              )}
+              
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button
                   variant="contained"

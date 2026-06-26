@@ -155,8 +155,8 @@ function UserView() {
               <Typography className="mr-4 font-medium">نقش‌ها:</Typography>
               {roles.data.map((role) => (
                 <Chip
-                  key={role}
-                  label={role}
+                  key={role.id}
+                  label={role.displayName || role.name || role.id}
                   className="mr-12 mb-12"
                   size="small"
                   color="primary"
@@ -171,8 +171,8 @@ function UserView() {
               <Typography className="mr-4 font-medium">دسترسی‌ها:</Typography>
               {accesses.data.map((access) => (
                 <Chip
-                  key={access}
-                  label={access}
+                  key={access.id}
+                  label={access.displayName || access.name || access.id}
                   className="mr-12 mb-12"
                   size="small"
                   color="secondary"

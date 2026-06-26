@@ -109,9 +109,27 @@ const UserApi = api
         transformResponse: (response) => response?.data,
         invalidatesTags: [{ type: "User", id: "LIST" }],
       }),
-      // Roles endpoints
+      // Roles endpoints (Authorization v2 - enriched with accesses)
       getRolesList: build.query({
         query: () => ({ url: `/role` }),
+        transformResponse: (response) => {
+          const roles = response?.data || [];
+          const filteredRoles = roles?.filter(role => role.enabled !== false && role.hidden !== true) || [];
+          const data = { data: filteredRoles };
+
+          if (response) {
+            if (response.pagination) {
+              data.totalPages = response.pagination.totalPages;
+              data.totalElements = response.pagination.totalElements;
+              data.pageSize = response.pagination.pageSize;
+              data.pageIndex = response.pagination.pageIndex;
+            }
+            if (response.meta)
+              data.meta = response.meta;
+          }
+
+          return data;
+        },
         providesTags: ["Role"],
       }),
       getUserRoles: build.query({
@@ -139,9 +157,15 @@ const UserApi = api
           { type: "UserRole", id: userId },
         ],
       }),
-      // Accesses endpoints
+      // Accesses endpoints (Authorization v2 - enriched with metadata)
       getAccessesList: build.query({
         query: () => ({ url: `/access` }),
+        // transformResponse: (response) => {
+        //   const accesses = response?.data || [];
+        //   // Backend already filters out system=true and enabled=false
+        //   // Group accesses by entity and operation for better UX
+        //   return accesses;
+        // },
         providesTags: ["Access"],
       }),
       getUserAccesses: build.query({
@@ -250,4 +274,83 @@ export function groupUsersByFirstLetter(users) {
     }
     return acc;
   }, {});
+}
+
+/**
+ * Group accesses by entity name and operation (Authorization v2)
+ * Provides a hierarchical structure for better UX in access picker
+ *
+ * Returns: {
+ *   COMPANY: {
+ *     READ: [access1, access2, ...],
+ *     UPDATE: [access3, ...],
+ *   },
+ *   SERVICE: { ... }
+ * }
+ */
+export function groupAccessesByEntity(accesses) {
+  if (!accesses || accesses.length === 0) {
+    return {};
+  }
+
+  return accesses.reduce((acc, access) => {
+    const entity = access.entityName || 'OTHER';
+    const operation = access.operation || 'OTHER';
+    const entityDisplayName = access.entityDisplayName || "سایر";
+
+    if (!acc[entity]) {
+      acc[entity] = {};
+    }
+
+    if (!acc[entity].operations)
+      acc[entity].operations = {};
+
+    if (!acc[entity].operations[operation]) {
+      acc[entity].operations[operation] = [];
+    }
+
+    acc[entity].operations[operation].push(access);
+    acc[entity].displayName = entityDisplayName;
+
+    return acc;
+  }, {});
+}
+
+/**
+ * Sort accesses within a group by scope priority (ALL > OWN > ONLINE_POLICY_CHECK)
+ */
+export function sortAccessesByScope(accesses) {
+  const scopePriority = { 'ALL': 1, 'OWN': 2, 'ONLINE_POLICY_CHECK': 3 };
+  return [...accesses].sort((a, b) => {
+    const priorityA = scopePriority[a.scope] || 999;
+    const priorityB = scopePriority[b.scope] || 999;
+    return priorityA - priorityB;
+  });
+}
+
+
+export function getOperationDisplayName(operation) {
+  switch (operation) {
+    case "CREATE": return "ایجاد";
+    case "READ": return "مشاهده";
+    case "UPDATE": return "ویرایش";
+    case "DELETE": return "حذف";
+    case "IMPORT": return "ورود اطلاعات";
+    case "EXPORT": return "خروج اطلاعات";
+    default: return operation;
+  }
+}
+/**
+ * Check if an access can be directly assigned to a user
+ * (COMMON_CRM_ROLE and BUSINESS_ROLE accesses can only be assigned via roles)
+ */
+export function isAccessDirectlyAssignable(access) {
+  return access.category === 'PERMISSION' || access.scope === 'ONLINE_POLICY_CHECK';
+}
+
+/**
+ * Filter accesses that can be directly assigned to users
+ */
+export function filterDirectlyAssignableAccesses(accesses) {
+  return accesses.filter(isAccessDirectlyAssignable);
 }

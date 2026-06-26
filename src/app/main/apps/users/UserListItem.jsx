@@ -62,12 +62,12 @@ function UserListItem(props) {
                 </Typography>
               )}
               
-              {user.roles && user.roles.length > 0 && (
+              {user?.userRoles && user?.userRoles.length > 0 && (
                 <div className="flex mt-4 flex-wrap">
-                  {user.roles.map((role, index) => (
+                  {user?.userRoles.map((role, index) => (
                     <Chip
                       key={index}
-                      label={role}
+                      label={role.displayName || role.name || role.id}
                       size="small"
                       className="mr-2 mb-2"
                       color="primary"
