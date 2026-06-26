@@ -11,13 +11,23 @@ import FuseUtils from "@fuse/utils";
 import navigationConfig from "app/configs/navigationConfig";
 import { selectCurrentLanguageId } from "app/store/i18nSlice";
 import { rootReducer } from "app/store/lazyLoadedSlices";
+import { getMergedNavigation } from "app/store/navigationMerger";
 
 const navigationAdapter = createEntityAdapter();
 const emptyInitialState = navigationAdapter.getInitialState([]);
-const initialState = navigationAdapter.upsertMany(
-  emptyInitialState,
-  FuseNavigationHelper.flattenNavigation(navigationConfig)
-);
+
+// Use merged navigation (dynamic + static fallback)
+const getInitialNavigation = () => {
+  const mergedNav = getMergedNavigation();
+  return navigationAdapter.upsertMany(
+    emptyInitialState,
+    FuseNavigationHelper.flattenNavigation(mergedNav)
+  );
+};
+
+const initialState = getInitialNavigation();
+console.log("initialState")
+console.log(initialState)
 /**
  * Redux Thunk actions related to the navigation store state
  */
@@ -105,6 +115,13 @@ export const navigationSlice = createSlice({
       );
     },
     resetNavigation: () => initialState,
+    refreshNavigationFromMeta(state) {
+      const mergedNav = getMergedNavigation();
+      return navigationAdapter.setAll(
+        state,
+        FuseNavigationHelper.flattenNavigation(mergedNav)
+      );
+    },
   },
 });
 /**
@@ -112,7 +129,7 @@ export const navigationSlice = createSlice({
  * */
 rootReducer.inject(navigationSlice);
 navigationSlice.injectInto(rootReducer);
-export const { setNavigation, resetNavigation } = navigationSlice.actions;
+export const { setNavigation, resetNavigation, refreshNavigationFromMeta } = navigationSlice.actions;
 export const selectNavigation = createSelector(
   [selectNavigationAll, selectUserRole, selectCurrentLanguageId],
   (navigationSimple, userRole) => {

@@ -1,9 +1,87 @@
 import {createApi} from '@reduxjs/toolkit/query/react';
 import Axios from 'axios';
 import {enqueueSnackbar} from 'notistack';
+import { setMetaCache } from './metaCache';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const API_STATIC_FILES_BASE_URL = import.meta.env.VITE_API_STATIC_FILES_BASE_URL;
+
+// Toast deduplication: Track recent toasts to prevent duplicates
+const toastHistory = [];
+const TOAST_DEDUP_WINDOW_MS = 2000; // 2 seconds window for deduplication
+
+/**
+ * Check if a similar toast was recently shown
+ * @param {string} message - The message to check
+ * @returns {boolean} - True if should show, false if should skip
+ */
+function shouldShowToast(message) {
+    const now = Date.now();
+    
+    // Clean up old entries (older than the dedup window)
+    while (toastHistory.length > 0 && now - toastHistory[0].timestamp > TOAST_DEDUP_WINDOW_MS) {
+        toastHistory.shift();
+    }
+    
+    // Check if a similar message was shown recently
+    const isDuplicate = toastHistory.some(entry => {
+        // Consider messages similar if they're within 80% similarity
+        const similarity = calculateSimilarity(entry.message, message);
+        return similarity > 0.8;
+    });
+    
+    if (!isDuplicate) {
+        toastHistory.push({ message, timestamp: now });
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Calculate string similarity (simple Levenshtein-based)
+ */
+function calculateSimilarity(str1, str2) {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    const editDistance = levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ */
+function levenshteinDistance(str1, str2) {
+    const matrix = [];
+    
+    for (let i = 0; i <= str2.length; i++) {
+        matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= str1.length; j++) {
+        matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+        for (let j = 1; j <= str1.length; j++) {
+            if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    
+    return matrix[str2.length][str1.length];
+}
+
 const axiosBaseQuery =
     () =>
         async ({url, method, data, params}) => {
@@ -52,6 +130,11 @@ const axiosBaseQuery =
                 // 	return { error: { status: result.data.statusCode, data: result.data } };
                 // }
 
+                // Extract and cache meta from response if present
+                if (result.data?.meta) {
+                    setMetaCache(result.data.meta);
+                }
+
                 return {data: result.data};
             } catch (axiosError) {
                 const error = axiosError || null;
@@ -62,20 +145,15 @@ const axiosBaseQuery =
                 const defaultMessage = 'خطا در ارتباط با سرور';
                 const apiMessage = responseData?.message || defaultMessage;
                 const message = `خطا در انجام عملیات: ${apiMessage}`;
-                // showMessage({
-                // 	message: apiMessage,
-                // 	autoHideDuration: 5000,
-                // 	anchorOrigin: {
-                // 		vertical: 'bottom',
-                // 		horizontal: 'right'
-                // 	},
-                // 	variant: 'error'
-                // });
-                enqueueSnackbar(message, {
-                    variant: 'error',
-                    // anchorOrigin: { horizontal: 'left', vertical: 'bottom' },
-                    style: {fontSize: 'medium'}
-                });
+                
+                // Only show toast if not a duplicate
+                if (shouldShowToast(message)) {
+                    enqueueSnackbar(message, {
+                        variant: 'error',
+                        // anchorOrigin: { horizontal: 'left', vertical: 'bottom' },
+                        style: {fontSize: 'medium'}
+                    });
+                }
 
                 if (responseData && statusCode >= 400 && statusCode < 500)
                     return {error: {status, statusCode, apiError, apiMessage}};
