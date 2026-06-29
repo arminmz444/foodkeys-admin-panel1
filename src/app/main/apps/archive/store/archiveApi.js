@@ -177,6 +177,7 @@ const ArchiveApi = api
           { type: "archives", id: "LIST" },
           { type: "Archives", id: "LIST" },
           { type: "Archives", id: "ENTITY_LIST" },
+          { type: "Archive", id: "LIST" },
         ],
       }),
       getArchivesByEntity: build.query({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { 
   Typography, 
@@ -7,8 +7,9 @@ import {
   Grid, 
   Box, 
   Alert, 
-  CircularProgress, 
-  Divider 
+  CircularProgress,
+  Chip,
+  Tooltip 
 } from '@mui/material';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { motion } from 'framer-motion';
@@ -16,6 +17,7 @@ import Lightbox from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import 'yet-another-react-lightbox/styles.css';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 import { getServerFile } from '@/utils/string-utils';
 import { 
   getDefaultMetadata, 
@@ -24,7 +26,7 @@ import {
   isVideoFile 
 } from '../utils/fileUtils';
 import FileCard from './FileCard';
-import axios from 'axios';
+import useFileServiceTypeValidation from "@/app/main/shared-hooks/useFileServiceTypeValidation.js";
 
 function FileSection({ 
   title, 
@@ -41,7 +43,22 @@ function FileSection({
   
   const [lightboxIndex, setLightboxIndex] = useState(-1);
   const [uploadError, setUploadError] = useState(null);
+  const [validationErrors, setValidationErrors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    config: validationConfig,
+    isConfigAvailable,
+    validateFiles,
+  } = useFileServiceTypeValidation(fileServiceType);
+
+  const effectiveMaxFiles = isConfigAvailable && validationConfig.maxFiles
+    ? validationConfig.maxFiles
+    : maxFiles;
+
+  const effectiveAllowedTypes = isConfigAvailable && validationConfig.allowedMimeTypes && validationConfig.allowedMimeTypes.length > 0
+    ? validationConfig.allowedMimeTypes.join(',')
+    : allowedFileTypes;
 
   // Prepare slides for Lightbox
   const slides = files.map((file) => {
@@ -72,10 +89,22 @@ function FileSection({
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
     
-    // Check if adding these files would exceed the maximum
-    if (files.length + selectedFiles.length > maxFiles) {
-      setUploadError(`حداکثر تعداد فایل مجاز ${maxFiles} است.`);
-      return;
+    setValidationErrors([]);
+
+    // Validate files using the hook if config is available
+    if (isConfigAvailable) {
+      const result = validateFiles(selectedFiles, files.length);
+      if (!result.valid) {
+        setValidationErrors(result.errors);
+        setUploadError(null);
+        return;
+      }
+    } else {
+      // Fallback to basic max files check
+      if (files.length + selectedFiles.length > effectiveMaxFiles) {
+        setUploadError(`حداکثر تعداد فایل مجاز ${effectiveMaxFiles} است.`);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -85,14 +114,13 @@ function FileSection({
     const tempFiles = selectedFiles.map(file => {
       const previewUrl = URL.createObjectURL(file);
       return {
-        id: uuidv4(), // Temporary ID
+        id: uuidv4(),
         fileName: file.name,
         filePath: null,
         contentType: file.type,
         fileSize: file.size,
         uploadPending: true,
         previewUrl,
-        // Initialize with default metadata based on file type
         metadata: getDefaultMetadata(fileServiceType, file.type),
         fileServiceType
       };
@@ -135,7 +163,6 @@ function FileSection({
             );
             
             if (uploadedFile) {
-              // Parse metadata from the server or use what we already have
               let metadata = file.metadata;
               if (uploadedFile.metadata) {
                 try {
@@ -191,17 +218,14 @@ function FileSection({
     const newFiles = files.filter(file => file.id !== fileToRemove.id);
     setValue(fieldName, newFiles);
     
-    // If the file has an ID from the server and is not a temporary upload, delete it there too
     if (fileToRemove.id && !fileToRemove.uploadPending && !fileToRemove.uploadError) {
       try {
         await axios.delete(`/${companyId}/gallery/${fileToRemove.id}`);
       } catch (error) {
         console.error('Error deleting file:', error);
-        // File is already removed from the form, so just log the error
       }
     }
     
-    // If the file has a blob URL, revoke it to free memory
     if (fileToRemove.previewUrl && fileToRemove.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(fileToRemove.previewUrl);
     }
@@ -214,7 +238,6 @@ function FileSection({
     );
     setValue(fieldName, updatedFiles);
     
-    // If the file has an ID from the server, update metadata there too
     if (file.id && !file.uploadPending && !file.uploadError) {
       try {
         axios.patch(`/company/${companyId}/gallery/${file.id}/metadata`, {
@@ -239,6 +262,20 @@ function FileSection({
     };
   }, [files]);
 
+  function formatFileSizeDisplay(bytes) {
+    if (!bytes) return '';
+    if (bytes >= 1024 * 1024 * 1024) {
+      return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    }
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${(bytes / 1024).toFixed(0)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
   return (
     <Paper
       component={motion.div}
@@ -247,14 +284,43 @@ function FileSection({
       className="p-5 mb-6"
     >
       <Box className="flex justify-between items-center mb-4">
-        <Typography variant="h6" className="font-bold">
-          {title || getFileServiceTypeDisplayName(fileServiceType)}
-        </Typography>
+        <Box className="flex items-center gap-2 flex-wrap">
+          <Typography variant="h6" className="font-bold">
+            {title || getFileServiceTypeDisplayName(fileServiceType)}
+          </Typography>
+          
+          {isConfigAvailable && (
+            <Box className="flex items-center gap-1 flex-wrap">
+              {validationConfig.maxFileSize && (
+                <Tooltip title="حداکثر حجم هر فایل">
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color="info"
+                    label={`حداکثر ${formatFileSizeDisplay(validationConfig.maxFileSize)}`}
+                    icon={<FuseSvgIcon size={14}>heroicons-outline:information-circle</FuseSvgIcon>}
+                  />
+                </Tooltip>
+              )}
+              {validationConfig.allowedExtensions && validationConfig.allowedExtensions.length > 0 && (
+                <Tooltip title="فرمت‌های مجاز">
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color="info"
+                    label={validationConfig.allowedExtensions.join(', ')}
+                    icon={<FuseSvgIcon size={14}>heroicons-outline:document</FuseSvgIcon>}
+                  />
+                </Tooltip>
+              )}
+            </Box>
+          )}
+        </Box>
         
         <Button
           variant="contained"
           color="secondary"
-          disabled={isLoading || files.length >= maxFiles}
+          disabled={isLoading || files.length >= effectiveMaxFiles}
           startIcon={<FuseSvgIcon>heroicons-outline:upload</FuseSvgIcon>}
           component="label"
         >
@@ -263,11 +329,10 @@ function FileSection({
             type="file"
             multiple
             hidden
-            accept={allowedFileTypes}
+            accept={effectiveAllowedTypes}
             onChange={handleAddFiles}
-            disabled={isLoading || files.length >= maxFiles}
+            disabled={isLoading || files.length >= effectiveMaxFiles}
             onClick={(e) => {
-              // Reset the value to ensure onChange fires even if selecting the same file again
               e.target.value = null;
             }}
           />
@@ -283,6 +348,21 @@ function FileSection({
       {uploadError && (
         <Alert severity="error" className="mb-4" onClose={() => setUploadError(null)}>
           {uploadError}
+        </Alert>
+      )}
+      
+      {validationErrors.length > 0 && (
+        <Alert severity="warning" className="mb-4" onClose={() => setValidationErrors([])}>
+          <Typography variant="body2" className="font-bold mb-1">
+            خطای اعتبارسنجی فایل‌ها:
+          </Typography>
+          <ul className="list-disc list-inside m-0 p-0">
+            {validationErrors.map((err, idx) => (
+              <li key={idx}>
+                <Typography variant="body2" component="span">{err}</Typography>
+              </li>
+            ))}
+          </ul>
         </Alert>
       )}
       
@@ -306,7 +386,9 @@ function FileSection({
               ? 'heroicons-outline:photograph'
               : fileServiceType.includes('DOCUMENT') || fileServiceType.includes('CERTIFICATE')
                 ? 'heroicons-outline:document-text'
-                : 'heroicons-outline:upload'
+                : fileServiceType.includes('VIDEO')
+                  ? 'heroicons-outline:film'
+                  : 'heroicons-outline:upload'
             }
           </FuseSvgIcon>
           <Typography className="text-gray-500">
@@ -323,10 +405,9 @@ function FileSection({
               type="file"
               multiple
               hidden
-              accept={allowedFileTypes}
+              accept={effectiveAllowedTypes}
               onChange={handleAddFiles}
               onClick={(e) => {
-                // Reset the value to ensure onChange fires even if selecting the same file again
                 e.target.value = null;
               }}
             />
@@ -363,7 +444,7 @@ function FileSection({
       {files.length > 0 && (
         <Box className="mt-4 flex justify-between items-center">
           <Typography variant="body2" className="text-gray-600">
-            {files.length} از {maxFiles} فایل مجاز
+            {files.length} از {effectiveMaxFiles} فایل مجاز
           </Typography>
         </Box>
       )}

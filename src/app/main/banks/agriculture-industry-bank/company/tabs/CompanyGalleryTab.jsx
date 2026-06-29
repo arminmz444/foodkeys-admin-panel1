@@ -91,6 +91,14 @@ function CompanyGalleryTab() {
           if (groupedFiles.COMPANY_GALLERY_SLIDER) {
             setValue('companyGallerySlider', groupedFiles.COMPANY_GALLERY_SLIDER);
           }
+          
+          if (groupedFiles.COMPANY_GALLERY_VIDEO) {
+            setValue('companyGalleryVideo', groupedFiles.COMPANY_GALLERY_VIDEO);
+          }
+          
+          if (groupedFiles.COMPANY_GALLERY_GIF) {
+            setValue('companyGalleryGif', groupedFiles.COMPANY_GALLERY_GIF);
+          }
         }
       } catch (err) {
         console.error('Error fetching gallery files:', err);
@@ -219,6 +227,28 @@ function CompanyGalleryTab() {
         allowedFileTypes="image/*"
         description="تصاویر مورد نظر برای نمایش در اسلایدر اصلی صفحه شرکت را در این قسمت آپلود کنید."
         acceptMessage="فقط فایل‌های تصویری با کیفیت بالا و ابعاد مناسب مجاز هستند (حداکثر 10 فایل)"
+        companyId={companyId}
+      />
+      
+      <FileSection
+        title="گالری ویدیو"
+        fieldName="companyGalleryVideo"
+        fileServiceType="COMPANY_GALLERY_VIDEO"
+        maxFiles={3}
+        allowedFileTypes="video/mp4,video/webm,video/ogg"
+        description="ویدیوهای کوتاه معرفی شرکت را آپلود کنید. حداکثر ۳ ویدیوی کوتاه و کم‌حجم مجاز است."
+        acceptMessage="فقط فایل‌های ویدیویی (MP4, WebM, OGG) مجاز هستند (حداکثر 3 فایل)"
+        companyId={companyId}
+      />
+      
+      <FileSection
+        title="تیزر متحرک (GIF)"
+        fieldName="companyGalleryGif"
+        fileServiceType="COMPANY_GALLERY_GIF"
+        maxFiles={1}
+        allowedFileTypes="image/gif"
+        description="یک تصویر متحرک (GIF) کوتاه به عنوان تیزر تبلیغاتی شرکت آپلود کنید."
+        acceptMessage="فقط فایل‌های GIF مجاز هستند (حداکثر 1 فایل)"
         companyId={companyId}
       />
     </motion.div>

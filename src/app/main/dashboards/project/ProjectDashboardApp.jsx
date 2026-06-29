@@ -84,6 +84,7 @@ function ProjectDashboardApp() {
 					{tabValue === 3 && <GeographicTab />}
 				</div>
 			}
+			scroll="content"
 		/>
 	);
 }

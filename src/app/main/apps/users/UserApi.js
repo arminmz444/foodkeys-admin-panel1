@@ -136,27 +136,6 @@ const UserApi = api
         query: (userId) => ({ url: `/user/${userId}/role` }),
         providesTags: (result, error, id) => [{ type: "UserRole", id }],
       }),
-      addRoleToUser: build.mutation({
-        query: ({userId, roleId}) => ({
-          url: `/user/${userId}/role`,
-          method: "POST",
-          data: { id: roleId },
-        }),
-        invalidatesTags: (result, error, { userId }) => [
-          { type: "User", id: userId },
-          { type: "UserRole", id: userId },
-        ],
-      }),
-      removeRoleFromUser: build.mutation({
-        query: ({userId, roleId}) => ({
-          url: `/user/${userId}/role/${roleId}`,
-          method: "DELETE",
-        }),
-        invalidatesTags: (result, error, { userId }) => [
-          { type: "User", id: userId },
-          { type: "UserRole", id: userId },
-        ],
-      }),
       // Accesses endpoints (Authorization v2 - enriched with metadata)
       getAccessesList: build.query({
         query: () => ({ url: `/access` }),
@@ -183,25 +162,15 @@ const UserApi = api
           { type: "UserAccess", id: userId },
         ],
       }),
-      addAccessToUser: build.mutation({
-        query: ({userId, accessId}) => ({
-          url: `/user/${userId}/access`,
-          method: "POST",
-          data: { id: accessId },
+      updateUserRoles: build.mutation({
+        query: ({userId, roles}) => ({
+          url: `/user/${userId}/role`,
+          method: "PUT",
+          data: roles,
         }),
         invalidatesTags: (result, error, { userId }) => [
           { type: "User", id: userId },
-          { type: "UserAccess", id: userId },
-        ],
-      }),
-      removeAccessFromUser: build.mutation({
-        query: ({userId, accessId}) => ({
-          url: `/user/${userId}/access/${accessId}`,
-          method: "DELETE",
-        }),
-        invalidatesTags: (result, error, { userId }) => [
-          { type: "User", id: userId },
-          { type: "UserAccess", id: userId },
+          { type: "UserRole", id: userId },
         ],
       }),
       getProvinces: build.query({
@@ -242,13 +211,10 @@ export const {
   useDeleteUserMutation,
   useGetRolesListQuery,
   useGetUserRolesQuery,
-  useAddRoleToUserMutation,
-  useRemoveRoleFromUserMutation,
   useGetAccessesListQuery,
   useGetUserAccessesQuery,
   useUpdateUserAccessesMutation,
-  useAddAccessToUserMutation,
-  useRemoveAccessFromUserMutation,
+  useUpdateUserRolesMutation,
   useGetProvincesQuery,
   useGetCitiesQuery,
   useGetUserCreditQuery,

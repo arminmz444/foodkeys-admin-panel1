@@ -100,7 +100,6 @@
 // export default FinanceDashboardApp;
 
 // src/app/main/dashboards/finance/FinanceDashboardApp.jsx
-import React from 'react';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { motion } from 'framer-motion';
 import FuseLoading from '@fuse/core/FuseLoading';
@@ -116,7 +115,7 @@ const container = {
   }
 };
 
-const item = {
+const _item = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0 }
 };
@@ -125,7 +124,7 @@ const item = {
  * The finance dashboard app.
  */
 function FinanceDashboardApp() {
-  const { data: widgets, isLoading, refetch, isFetching } = useGetFinanceDashboardWidgetsQuery();
+  const { data: _widgets, isLoading, refetch, isFetching } = useGetFinanceDashboardWidgetsQuery();
 
   const handleRefresh = () => {
     refetch();
@@ -150,6 +149,7 @@ function FinanceDashboardApp() {
           </motion.div>
         </div>
       }
+      scroll="content"
     />
   );
 }

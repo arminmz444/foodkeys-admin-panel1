@@ -192,6 +192,44 @@ const FinanceDashboardApi = api
         transformResponse: (response) => response.data,
         providesTags: (result, error, userId) => [{ type: "User", id: userId }],
       }),
+
+      // Filtered Transactions (for dashboard)
+      getFilteredTransactions: build.query({
+        query: ({ startDate, endDate, status, username, page = 0, size = 10 }) => ({
+          url: "/transaction",
+          params: { startDate, endDate, status, username, page, size },
+        }),
+        transformResponse: (response) => ({
+          data: response.data,
+          pagination: response.pagination,
+        }),
+        providesTags: (result) =>
+          result?.data
+            ? [
+                ...result.data.map(({ id }) => ({ type: "Transaction", id })),
+                { type: "Transaction", id: "FILTERED_LIST" },
+              ]
+            : [{ type: "Transaction", id: "FILTERED_LIST" }],
+      }),
+
+      // Filtered Payments (for dashboard)
+      getFilteredPayments: build.query({
+        query: ({ startDate, endDate, status, username, page = 0, size = 10 }) => ({
+          url: "/payment",
+          params: { startDate, endDate, status, username, page, size },
+        }),
+        transformResponse: (response) => ({
+          data: response.data,
+          pagination: response.pagination,
+        }),
+        providesTags: (result) =>
+          result?.data
+            ? [
+                ...result.data.map(({ id }) => ({ type: "Payment", id })),
+                { type: "Payment", id: "FILTERED_LIST" },
+              ]
+            : [{ type: "Payment", id: "FILTERED_LIST" }],
+      }),
     }),
     overrideExisting: false,
   });
@@ -211,6 +249,8 @@ export const {
   useGetMyBillsQuery,
   useGetBillByIdQuery,
   useGetUserInfoQuery,
+  useGetFilteredTransactionsQuery,
+  useGetFilteredPaymentsQuery,
 } = FinanceDashboardApi;
 export const selectFinanceDashboardWidgets = createSelector(
   FinanceDashboardApi.endpoints.getFinanceDashboardWidgets.select(),

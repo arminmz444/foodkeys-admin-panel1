@@ -17,7 +17,6 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -25,22 +24,18 @@ import {
   Tooltip
 } from "@mui/material";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
+import { showMessage } from "@fuse/core/FuseMessage/fuseMessageSlice";
+import { useAppDispatch } from "app/store/hooks";
 import {
   useGetRolesListQuery,
   useGetAccessesListQuery,
   useGetUserRolesQuery,
   useGetUserAccessesQuery,
-  useAddRoleToUserMutation,
-  useRemoveRoleFromUserMutation,
-  useAddAccessToUserMutation,
-  useRemoveAccessFromUserMutation,
   useUpdateUserAccessesMutation,
   groupAccessesByEntity,
   sortAccessesByScope,
-  filterDirectlyAssignableAccesses, getOperationDisplayName
+  filterDirectlyAssignableAccesses, getOperationDisplayName, useUpdateUserRolesMutation
 } from "./UserApi";
-import { showMessage } from "@fuse/core/FuseMessage/fuseMessageSlice";
-import { useAppDispatch } from "app/store/hooks";
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -88,15 +83,11 @@ function RoleAccessManagement({ userId }) {
   const { data: userAccesses = { data: [] }, isLoading: isLoadingUserAccesses, refetch: refetchUserAccesses } = useGetUserAccessesQuery(userId);
 
   // API mutations
-  const [addRoleToUser] = useAddRoleToUserMutation();
-  const [removeRoleFromUser] = useRemoveRoleFromUserMutation();
-  const [addAccessToUser] = useAddAccessToUserMutation();
-  const [removeAccessFromUser] = useRemoveAccessFromUserMutation();
   const [updateUserAccesses] = useUpdateUserAccessesMutation();
+  const [updateUserRoles] = useUpdateUserRolesMutation();
 
   // Set selected roles and accesses when data is loaded
   useEffect(() => {
-    debugger
     if (userRoles?.data) {
       const roleIds = rolesList?.data?.filter(role => 
         // userRoles.data.includes(role.name)
@@ -153,24 +144,9 @@ function RoleAccessManagement({ userId }) {
   const handleSaveRoles = async () => {
     try {
       setConfirmLoading(true);
-      
-      // Get roles that need to be added and removed
-      const currentRoleIds = rolesList?.data?.filter(role => 
-        userRoles.data.includes(role.name)
-      ).map(role => role.id) || [];
-      
-      const rolesToAdd = selectedRoles.filter(id => !currentRoleIds.includes(id));
-      const rolesToRemove = currentRoleIds.filter(id => !selectedRoles.includes(id));
-      
-      // Add new roles
-      for (const roleId of rolesToAdd) {
-        await addRoleToUser({ userId, roleId }).unwrap();
-      }
-      
-      // Remove roles
-      for (const roleId of rolesToRemove) {
-        await removeRoleFromUser({ userId, roleId }).unwrap();
-      }
+
+      await updateUserRoles({ userId,
+        roles: selectedRoles.map(id => ({ id })) }).unwrap();
       
       await refetchUserRoles();
       dispatch(showMessage({ message: "نقش‌های کاربر با موفقیت بروزرسانی شد" }));
@@ -224,7 +200,6 @@ function RoleAccessManagement({ userId }) {
   // These can only be assigned via roles, not directly
   const assignableRoles = (rolesList?.data || []).filter(role => !role.hidden);
   const filteredRoles = filterItems(assignableRoles, searchText);
-  debugger
   // Filter accesses: only show directly assignable ones
   const assignableAccesses = filterDirectlyAssignableAccesses(accessesList?.data || []);
   const filteredAccesses = filterItems(assignableAccesses, searchText);
