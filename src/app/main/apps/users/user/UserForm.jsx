@@ -87,8 +87,8 @@ const schema = z
       .string()
       .optional()
       .or(z.object({ value: z.string(), label: z.string() })),
-    roles: z.array(z.string()).optional(),
-    accesses: z.array(z.string()).optional(),
+    roles: z.array(z.any()).optional(),
+    accesses: z.array(z.any()).optional(),
     birthDate: z.string().optional(),
     birthMonth: z.number().min(1).max(12).optional(),
     showOnlyMonth: z.boolean().optional(),
@@ -162,6 +162,12 @@ function UserForm() {
   });
 
   const { isValid, dirtyFields, errors } = formState;
+  console.log("FormState:")
+    console.log(formState)
+  console.log("Errors")
+  console.log(dirtyFields)
+    console.log(isValid)
+    console.log(errors)
   const form = watch();
   const showOnlyMonth = watch("showOnlyMonth");
 

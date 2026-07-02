@@ -34,6 +34,7 @@ import ExcelTemplateAppConfig from "./template-manager/excel-template-manager/Ex
 import SubscriptionsAppConfig from "./subscriptions/SubscriptionsAppConfig";
 import WeblogAppConfig from "./weblog-management/WeblogAppConfig.jsx";
 import BulkMessagingAppConfig from "./bulk-messaging/BulkMessagingAppConfig";
+import RoleAppConfig from "./roles/RoleAppConfig";
 /**
  * The payments of application configurations.
  */
@@ -73,6 +74,7 @@ const appsConfigs = [
   ExcelTemplateAppConfig,
   SubscriptionsAppConfig,
   WeblogAppConfig,
-  BulkMessagingAppConfig
+  BulkMessagingAppConfig,
+  RoleAppConfig,
 ];
 export default appsConfigs;

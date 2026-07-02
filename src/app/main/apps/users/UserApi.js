@@ -111,7 +111,7 @@ const UserApi = api
       }),
       // Roles endpoints (Authorization v2 - enriched with accesses)
       getRolesList: build.query({
-        query: () => ({ url: `/role` }),
+        query: () => ({ url: `/role`, params: { pageNumber: 1, pageSize: 10000 } }),
         transformResponse: (response) => {
           const roles = response?.data || [];
           const filteredRoles = roles?.filter(role => role.enabled !== false && role.hidden !== true) || [];

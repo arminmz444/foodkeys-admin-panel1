@@ -479,7 +479,7 @@ const AgricultureIndustryApi = api
       // Media and settings
       hasPrivatePage: data.hasPrivatePage || false,
       miniAppIframeSource: data.miniAppIframeSource,
-      logo: data.logo,
+      logo: data.companyLogoFiles?.[0]?.filePath || data.logo,
       backgroundImage: data.backgroundImage,
       
       // Additional info (custom key-value pairs)

@@ -761,6 +761,14 @@ const navigationConfig = [
         url: "/apps/users",
       },
       {
+        id: "users.roles",
+        title: "مدیریت نقش‌ها",
+        translate: "ROLES_MANAGEMENT",
+        type: "item",
+        icon: "heroicons-outline:shield-check",
+        url: "/apps/roles",
+      },
+      {
         id: "users.news-letter",
         title: "UsersNewsLetter",
         translate: "USERS_NEWS_LETTER",

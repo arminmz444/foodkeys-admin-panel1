@@ -5,6 +5,7 @@ import { Typography, Alert, Box, CircularProgress } from '@mui/material';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import FileSection from './components/FileSection';
+import CompanyLogoUpload from '@/app/shared-components/company-logo-upload/CompanyLogoUpload';
 
 function CompanyGalleryTab() {
   const methods = useFormContext();
@@ -62,6 +63,10 @@ function CompanyGalleryTab() {
           // Set values in form for each file type
           if (groupedFiles.COMPANY_LOGO) {
             setValue('companyLogoFiles', groupedFiles.COMPANY_LOGO);
+            const primaryLogo = groupedFiles.COMPANY_LOGO.find((f) => f.filePath) || groupedFiles.COMPANY_LOGO[0];
+            if (primaryLogo?.filePath) {
+              setValue('logo', primaryLogo.filePath);
+            }
           }
           
           if (groupedFiles.COMPANY_BACKGROUND_IMAGE) {
@@ -141,17 +146,8 @@ function CompanyGalleryTab() {
         در این بخش می‌توانید تصاویر، ویدیوها و اسناد مرتبط با شرکت را بارگذاری کنید.
         برای هر فایل امکان تعریف عنوان، توضیحات و سایر ویژگی‌ها وجود دارد.
       </Alert>
-      
-      <FileSection
-        title="لوگو شرکت"
-        fieldName="companyLogoFiles"
-        fileServiceType="COMPANY_LOGO"
-        maxFiles={2}
-        allowedFileTypes="image/*"
-        description="لوگوی اصلی شرکت را در این قسمت آپلود کنید. فرمت‌های PNG و SVG با پس‌زمینه شفاف توصیه می‌شود."
-        acceptMessage="فقط فایل‌های تصویری مجاز هستند (حداکثر 2 فایل)"
-        companyId={companyId}
-      />
+
+      <CompanyLogoUpload companyId={companyId} />
       
       <FileSection
         title="تصویر پس زمینه"

@@ -21,7 +21,6 @@ import CompanyModel from "./models/CompanyModel";
 import HistoryTab from "@/app/main/banks/food-industry-bank/company/tabs/HistoryTab";
 import ContactInfoTab from "@/app/main/banks/food-industry-bank/company/tabs/ContactInfoTab";
 import ManagementDescTab from "@/app/main/banks/food-industry-bank/company/tabs/ManagementDescTab";
-import CompanyMainImagesTab from "@/app/main/banks/food-industry-bank/company/tabs/CompanyMainImagesTab";
 import RegistrarTab from "@/app/main/banks/food-industry-bank/company/tabs/RegistrarTab.jsx";
 import MapTab from "./tabs/MapTab";
 import SettingsTab from "./tabs/additional-settings-tab/SettingsTab";
@@ -166,7 +165,6 @@ function Company() {
               <Tab className="h-64" label="اطلاعات تماس" />
               <Tab className="h-64" label="گالری" />
               <Tab className="h-64" label="توضیحات مدیریت" />
-              <Tab className="h-64" label="لوگو و عکس پس‌زمینه" />
               <Tab className="h-64" label="مکان روی نقشه" />
               <Tab className="h-64" label="اطلاعات بیشتر" />
               {/*<Tab className="h-64" label="تنظیمات" />*/}
@@ -199,13 +197,12 @@ function Company() {
               {tabValue === 3 && <ContactInfoTab />}
               {tabValue === 4 && <CompanyGalleryTab />}
               {tabValue === 5 && <ManagementDescTab />}
-              {tabValue === 6 && <CompanyMainImagesTab />}
-              {tabValue === 7 && <MapTab tabValue={tabValue} myIndex={7} />}
-              {tabValue === 8 && <RegistrarTab />}
-              {/*{tabValue === 9 && <SettingsTab />}*/}
-              {tabValue === 9 && <ArchivesTab />}
-              {tabValue === 10 && <VersionHistoryTab />}
-              {tabValue === 11 && <RelatedCompaniesTab bankType="food" />}
+              {tabValue === 6 && <MapTab tabValue={tabValue} myIndex={6} />}
+              {tabValue === 7 && <RegistrarTab />}
+              {/*{tabValue === 8 && <SettingsTab />}*/}
+              {tabValue === 8 && <ArchivesTab />}
+              {tabValue === 9 && <VersionHistoryTab />}
+              {tabValue === 10 && <RelatedCompaniesTab bankType="food" />}
             </div>
 
               {/* <div className={tabValue !== 1 ? "hidden" : ""}>

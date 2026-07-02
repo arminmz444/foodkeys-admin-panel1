@@ -65,6 +65,7 @@ const locale = {
   FILE_MANAGER: "مدیریت فایل",
   SUB_FILE_MANAGER: "بخش مدیریت فایل‌های سیستم",
   USERS_LIST: "مدیریت کاربران",
+  ROLES_MANAGEMENT: "مدیریت نقش‌ها",
   USERS: "کاربران",
   TICKETING: "مدیریت تیکت‌ها",
   WHATSAPP: "واتس‌اپ",
