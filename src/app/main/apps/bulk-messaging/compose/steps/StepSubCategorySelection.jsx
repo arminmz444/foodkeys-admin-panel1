@@ -67,17 +67,12 @@ function StepSubCategorySelection({
       <Typography variant="h6" className="font-bold mb-8" color="text.primary">
         زیردسته‌های مورد نظر را انتخاب کنید
       </Typography>
-      <Typography variant="body2" color="text.secondary" className="mb-24">
-        پیام به شرکت‌ها/کاربرانی که در زیردسته‌های انتخاب شده ثبت‌نام کرده‌اند
-        ارسال می‌شود
+      <Typography variant="body2" color="text.secondary" className="mb-16">
+        زیردسته‌هایی که می‌خواهید پیام به کاربران آن‌ها ارسال شود را انتخاب کنید
       </Typography>
 
-      {/* Selected chips */}
       {selectedSubCategories.length > 0 && (
-        <Paper
-          variant="outlined"
-          sx={{ borderRadius: 3, p: 1.5, mb: 2 }}
-        >
+        <Paper variant="outlined" sx={{ borderRadius: 3, p: 1.5, mb: 2 }}>
           <Box className="flex items-center gap-8 mb-8">
             <Typography variant="caption" color="text.secondary">
               {selectedSubCategories.length} زیردسته انتخاب شده
@@ -115,7 +110,6 @@ function StepSubCategorySelection({
         </Paper>
       )}
 
-      {/* Search */}
       <TextField
         fullWidth
         size="small"
@@ -135,7 +129,6 @@ function StepSubCategorySelection({
         }}
       />
 
-      {/* Action buttons */}
       <Box className="flex gap-8 mb-8">
         <Chip
           label="انتخاب همه"
@@ -147,7 +140,6 @@ function StepSubCategorySelection({
         />
       </Box>
 
-      {/* List */}
       <Paper
         variant="outlined"
         sx={{
@@ -195,9 +187,7 @@ function StepSubCategorySelection({
                     onClick={() => toggleSubCategory(sc)}
                     sx={{
                       transition: "all 0.15s ease",
-                      bgcolor: isSelected(sc)
-                        ? "action.selected"
-                        : "transparent",
+                      bgcolor: isSelected(sc) ? "action.selected" : "transparent",
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 40 }}>

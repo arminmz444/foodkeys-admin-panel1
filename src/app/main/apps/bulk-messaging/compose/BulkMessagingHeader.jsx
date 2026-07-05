@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
 import Button from "@mui/material/Button";
@@ -6,7 +5,7 @@ import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useMemo } from "react";
 
 const navTabs = [

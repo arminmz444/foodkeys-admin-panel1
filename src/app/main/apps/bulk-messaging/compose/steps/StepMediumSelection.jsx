@@ -5,10 +5,12 @@ import {
   CardContent,
   Box,
   Checkbox,
-  Avatar,
+  Button,
 } from "@mui/material";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
+import AudiencePreviewDialog from "../AudiencePreviewDialog";
 
 const mediumOptions = [
   {
@@ -58,7 +60,19 @@ const cardVariants = {
   show: { opacity: 1, y: 0, scale: 1 },
 };
 
-function StepMediumSelection({ selectedMediums, onMediumsChange }) {
+function StepMediumSelection({
+  selectedMediums,
+  onMediumsChange,
+  showAudiencePreview = false,
+  targetType,
+  selectedSubCategories,
+  audienceCriteria,
+  bundleId,
+  companyStatus,
+  excludedUsernames,
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+
   const toggleMedium = (value) => {
     if (selectedMediums.includes(value)) {
       onMediumsChange(selectedMediums.filter((m) => m !== value));
@@ -152,16 +166,59 @@ function StepMediumSelection({ selectedMediums, onMediumsChange }) {
         })}
       </motion.div>
 
-      {selectedMediums.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-24"
-        >
-          <Typography variant="body2" color="text.secondary" align="center">
-            <strong>{selectedMediums.length}</strong> روش ارسال انتخاب شده
-          </Typography>
-        </motion.div>
+      <AnimatePresence>
+        {selectedMediums.length > 0 && (
+          <motion.div
+            key="medium-selection-footer"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="mt-24 flex flex-col items-center gap-16 w-full max-w-3xl"
+          >
+            <Typography variant="body2" color="text.secondary" align="center">
+              <strong>{selectedMediums.length}</strong> روش ارسال انتخاب شده
+            </Typography>
+
+            {showAudiencePreview && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1, duration: 0.25 }}
+              >
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => setPreviewOpen(true)}
+                  startIcon={<FuseSvgIcon size={20}>heroicons-outline:eye</FuseSvgIcon>}
+                  sx={{
+                    borderRadius: 3,
+                    px: 3,
+                    py: 1,
+                    transition: "all 0.3s ease",
+                    "&:hover": { transform: "translateY(-1px)", boxShadow: 4 },
+                  }}
+                >
+                  پیش‌نمایش مخاطبین
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {showAudiencePreview && (
+        <AudiencePreviewDialog
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          targetType={targetType}
+          selectedSubCategories={selectedSubCategories}
+          audienceCriteria={audienceCriteria}
+          bundleId={bundleId}
+          companyStatus={companyStatus}
+          excludedUsernames={excludedUsernames}
+          selectedMediums={selectedMediums}
+        />
       )}
     </div>
   );

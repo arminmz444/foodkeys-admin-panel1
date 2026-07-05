@@ -154,8 +154,16 @@ const BulkMessagingApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 		}),
 
 		/**
-		 * GET /subcategories — list all subcategories for selection
+		 * GET /bulk-messaging/audience-criteria — audience resolution options
 		 */
+		getAudienceCriteria: builder.query({
+			query: () => ({
+				url: "/bulk-messaging/audience-criteria",
+				method: "GET"
+			}),
+			transformResponse: (response) => response?.data || [],
+			keepUnusedDataFor: 3600
+		}),
 		getSubCategoriesForMessaging: builder.query({
 			query: ({ search = "" } = {}) => ({
 				url: `/subcategory?pageNumber=1&pageSize=1000&search=${encodeURIComponent(search)}`,
@@ -164,6 +172,20 @@ const BulkMessagingApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 			transformResponse: (response) => response?.data || [],
 			providesTags: [{ type: "SubCategories", id: "LIST" }],
 			keepUnusedDataFor: 3600
+		}),
+
+		/**
+		 * POST /bulk-messaging/audience-preview — preview resolved audience
+		 * Query: pageNumber, pageSize
+		 * Body: BulkMessagingAudiencePreviewRequestDTO
+		 */
+		previewAudience: builder.mutation({
+			query: ({ pageNumber = 1, pageSize = 50, ...body }) => ({
+				url: `/bulk-messaging/audience-preview?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+				method: "POST",
+				data: body
+			}),
+			transformResponse: (response) => response?.data
 		}),
 
 		/**
@@ -194,5 +216,7 @@ export const {
 	useCreateBulkMessagingTemplateMutation,
 	useDeleteBulkMessagingTemplateMutation,
 	useGetSubCategoriesForMessagingQuery,
-	useParseExclusionFileMutation
+	useParseExclusionFileMutation,
+	useGetAudienceCriteriaQuery,
+	usePreviewAudienceMutation
 } = BulkMessagingApi;

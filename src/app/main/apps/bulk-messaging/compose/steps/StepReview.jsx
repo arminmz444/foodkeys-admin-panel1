@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
+import { useGetAudienceCriteriaQuery } from "../../BulkMessagingApi";
 
 const mediumLabels = {
   whatsapp: { label: "واتس‌اپ", color: "#25D366" },
@@ -54,10 +55,19 @@ function ReviewRow({ icon, label, children }) {
 function StepReview({
   targetType,
   selectedSubCategories,
+  audienceCriteria,
+  bundleId,
+  companyStatus,
+  scheduledAt,
   excludedUsernames,
   selectedMediums,
   messageContent,
 }) {
+  const { data: criteriaOptions = [] } = useGetAudienceCriteriaQuery();
+
+  const getCriterionLabel = (code) =>
+    criteriaOptions.find((o) => o.code === code)?.displayName || code;
+
   return (
     <div className="flex flex-col">
       <Typography variant="h6" className="font-bold mb-8" color="text.primary">
@@ -126,6 +136,45 @@ function StepReview({
               </ReviewRow>
             </motion.div>
             <Divider />
+            {audienceCriteria?.length > 0 && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.25 }}
+                >
+                  <ReviewRow icon="heroicons-outline:funnel" label="نوع مخاطبین">
+                    <Box className="flex flex-wrap gap-6">
+                      {audienceCriteria.map((c) => (
+                        <Chip
+                          key={c}
+                          label={getCriterionLabel(c)}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ))}
+                    </Box>
+                    {bundleId && (
+                      <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                        پلن: {bundleId}
+                      </Typography>
+                    )}
+                    {companyStatus && (
+                      <Typography variant="caption" display="block">
+                        وضعیت شرکت: {companyStatus}
+                      </Typography>
+                    )}
+                    {scheduledAt && (
+                      <Typography variant="caption" display="block">
+                        زمان‌بندی: {scheduledAt}
+                      </Typography>
+                    )}
+                  </ReviewRow>
+                </motion.div>
+                <Divider />
+              </>
+            )}
           </>
         )}
 
