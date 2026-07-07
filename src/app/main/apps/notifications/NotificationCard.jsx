@@ -28,7 +28,7 @@ const variantBgColors = {
  * The notification card.
  */
 function NotificationCard(props) {
-	const { item, className, onClose } = props;
+	const { item, className, onClose, onClick } = props;
 	const theme = useTheme();
 	const defaultBgColor = theme.palette.background.paper;
 
@@ -51,6 +51,16 @@ function NotificationCard(props) {
 			onClose(item?.id);
 		}
 	};
+
+	const handleClick = (ev) => {
+		if (onClick) {
+			ev.preventDefault();
+			onClick(item);
+		}
+	};
+
+	const useLink = item.link && !onClick;
+
 	return (
 		<FuseTheme theme={contrastTheme}>
 			<Card
@@ -61,12 +71,13 @@ function NotificationCard(props) {
 				sx={{
 					backgroundColor: bgColor,
 					color: contrastTheme.palette.text.primary,
-					...(item.link ? { '&:hover': { backgroundColor: darken(bgColor, 0.05) } } : {})
+					...(useLink || onClick ? { '&:hover': { backgroundColor: darken(bgColor, 0.05) } } : {})
 				}}
 				elevation={0}
-				component={item.link ? NavLinkAdapter : 'div'}
-				to={item.link || ''}
-				role={item.link && 'button'}
+				component={useLink ? NavLinkAdapter : 'div'}
+				to={useLink ? item.link : ''}
+				role={useLink || onClick ? 'button' : undefined}
+				onClick={onClick ? handleClick : undefined}
 			>
 				{item.icon && !item.image && (
 					<Box

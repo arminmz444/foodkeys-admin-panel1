@@ -1,28 +1,16 @@
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useSnackbar } from 'notistack';
-import { useCreateNotificationMutation, useDeleteAllNotificationsMutation } from './NotificationApi';
 import NotificationModel from './models/NotificationModel';
 import NotificationTemplate from './NotificationTemplate';
 
-/**
- * The Notifications app header.
- */
 function NotificationsAppHeader() {
-	const [deleteAllNotifications] = useDeleteAllNotificationsMutation();
-	const [addNotification] = useCreateNotificationMutation();
 	const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-
-	function handleDismissAll() {
-		deleteAllNotifications();
-	}
 
 	function demoNotification() {
 		const item = NotificationModel({ title: 'این یک پیام دمو است' });
 		enqueueSnackbar(item.title, {
 			key: item.id,
-			// autoHideDuration: 3000,
 			content: (
 				<NotificationTemplate
 					item={item}
@@ -32,7 +20,6 @@ function NotificationsAppHeader() {
 				/>
 			)
 		});
-		addNotification(item);
 	}
 
 	return (
@@ -53,16 +40,6 @@ function NotificationsAppHeader() {
 						onClick={demoNotification}
 					>
 						پیام دمو
-					</Button>
-
-					<Button
-						className="whitespace-nowrap"
-						variant="contained"
-						color="secondary"
-						onClick={handleDismissAll}
-						startIcon={<FuseSvgIcon size={20}>heroicons-solid:bell</FuseSvgIcon>}
-					>
-						پاک کردن همه
 					</Button>
 				</div>
 			</div>

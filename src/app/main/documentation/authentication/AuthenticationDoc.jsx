@@ -119,7 +119,7 @@ function AuthenticationDoc() {
 						JWT Authentication Configuration: <br />
 					</Typography>
 					<Typography>
-						<code>src/app/auth/services/jwt/jwtAuthConfig.ts</code>
+						<code>src/app/auth/services/jwt/jwtAuthConfig.js</code>
 					</Typography>
 				</li>
 				<li>

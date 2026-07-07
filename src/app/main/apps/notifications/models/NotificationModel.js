@@ -20,7 +20,7 @@ function NotificationModel(data) {
 		timestamp: currentTime,
 		read: false,
 		variant: 'secondary',
-		link: '/apps/file-manager',
+		link: '/apps/notifications',
 		useRouter: true,
 		userId: 0,
 	});

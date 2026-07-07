@@ -1,19 +1,43 @@
+import { useEffect } from 'react';
 import FuseLoading from '@fuse/core/FuseLoading';
 import FusePageSimple from '@fuse/core/FusePageSimple/FusePageSimple';
 import Typography from '@mui/material/Typography';
 import Masonry from 'react-masonry-css';
-import { useDeleteNotificationMutation, useGetAllNotificationsQuery } from './NotificationApi';
+import { useAppDispatch, useAppSelector } from 'app/store/hooks';
+import { useNavigate } from 'react-router-dom';
+import NotificationApi, { useArchiveNotificationMutation, useGetNotificationsQuery } from './NotificationApi';
 import NotificationCard from './NotificationCard';
 import NotificationsAppHeader from './NotificationsAppHeader';
+import { clearPendingUpdates, selectHasPendingUpdates } from './models/notificationSlice';
+import { mapNotificationFromApi } from './utils/notificationUtils';
 
 function NotificationsApp() {
-	const [deleteNotification] = useDeleteNotificationMutation();
-	const { data: notifications, isLoading } = useGetAllNotificationsQuery();
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
+	const hasPendingUpdates = useAppSelector(selectHasPendingUpdates);
+	const [archiveNotification] = useArchiveNotificationMutation();
+	const { data: notificationsResponse, isLoading } = useGetNotificationsQuery({
+		pageNumber: 1,
+		pageSize: 20
+	});
 
-	const finalNotifications = notifications?.data;
+	useEffect(() => {
+		if (hasPendingUpdates) {
+			dispatch(NotificationApi.util.invalidateTags([{ type: 'NotificationsList', id: 'LIST' }]));
+			dispatch(clearPendingUpdates());
+		}
+	}, [dispatch, hasPendingUpdates]);
+
+	const finalNotifications = (notificationsResponse?.data || []).map(mapNotificationFromApi);
 
 	function handleDismiss(id) {
-		deleteNotification(id);
+		archiveNotification(id);
+	}
+
+	function handleNotificationClick(item) {
+		if (item?.id) {
+			navigate(`/apps/notifications/${item.id}`);
+		}
 	}
 
 	if (isLoading) {
@@ -35,18 +59,18 @@ function NotificationsApp() {
 						className="my-masonry-grid flex w-full"
 						columnClassName="my-masonry-grid_column flex flex-col p-8"
 					>
-						{finalNotifications &&
-							finalNotifications.length &&
+						{finalNotifications.length > 0 &&
 							finalNotifications.map((notification) => (
 								<NotificationCard
-									key={notification?.id}
-									className="mb-16"
+									key={notification.id}
+									className="mb-16 cursor-pointer"
 									item={notification}
 									onClose={handleDismiss}
+									onClick={() => handleNotificationClick(notification)}
 								/>
 							))}
 					</Masonry>
-					{(!finalNotifications || finalNotifications?.length === 0) && (
+					{finalNotifications.length === 0 && (
 						<div className="flex flex-1 items-center justify-center p-16">
 							<Typography
 								className="text-center text-24"

@@ -11,6 +11,7 @@ import UserModel from "./user/models/UserModel";
 import useJwtAuth from "./services/jwt/useJwtAuth";
 import useFirebaseAuth from "./services/firebase/useFirebaseAuth";
 import { loadUserFromStorage, hasStoredUserData } from "../store/rehydration";
+import NotificationProvider from "../main/apps/notifications/NotificationProvider";
 
 function Authentication(props) {
 	const { children } = props;
@@ -164,7 +165,9 @@ function Authentication(props) {
 				<FuseSplashScreen />
 			) : (
 				<BrowserRouter>
-					<FuseAuthorization userRole={userRole}>{children}</FuseAuthorization>
+					<NotificationProvider>
+						<FuseAuthorization userRole={userRole}>{children}</FuseAuthorization>
+					</NotificationProvider>
 				</BrowserRouter>
 			),
 		[userRole, children, isLoading]

@@ -1,9 +1,8 @@
 import { lazy } from 'react';
 
 const NotificationsApp = lazy(() => import('./NotificationsApp'));
-/**
- * The Notifications app config.
- */
+const NotificationDetail = lazy(() => import('./NotificationDetail'));
+
 const NotificationsAppConfig = {
 	settings: {
 		layout: {
@@ -18,9 +17,14 @@ const NotificationsAppConfig = {
 					path: '',
 					element: <NotificationsApp />,
 					exact: true
+				},
+				{
+					path: ':id',
+					element: <NotificationDetail />
 				}
 			]
 		}
 	]
 };
+
 export default NotificationsAppConfig;

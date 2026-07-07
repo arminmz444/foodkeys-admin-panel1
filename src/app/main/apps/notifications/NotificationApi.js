@@ -1,167 +1,120 @@
-// import { apiService as api } from 'app/store/apiService';
-//
-// export const addTagTypes = ['notifications', 'notification'];
-// const NotificationApi = api
-// 	.enhanceEndpoints({
-// 		addTagTypes
-// 	})
-// 	.injectEndpoints({
-// 		endpoints: (build) => ({
-// 			getAllNotifications: build.query({
-// 				query: () => ({ url: `/notification` }),
-// 				providesTags: ['notifications']
-// 			}),
-// 			createNotification: build.mutation({
-// 				query: (notification) => ({
-// 					url: `/notification`,
-// 					method: 'POST',
-// 					data: notification
-// 				}),
-// 				invalidatesTags: ['notifications']
-// 			}),
-// 			deleteAllNotifications: build.mutation({
-// 				query: () => ({ url: `/notification`, method: 'DELETE' }),
-// 				invalidatesTags: ['notifications']
-// 			}),
-// 			getNotification: build.query({
-// 				query: (notificationId) => ({
-// 					url: `/notification/${notificationId}`
-// 				}),
-// 				providesTags: ['notification']
-// 			}),
-// 			deleteNotification: build.mutation({
-// 				query: (notificationId) => ({
-// 					url: `/notification/${notificationId}`,
-// 					method: 'DELETE'
-// 				}),
-// 				invalidatesTags: ['notifications']
-// 			})
-// 		}),
-// 		overrideExisting: false
-// 	});
-// export default NotificationApi;
-// export const {
-// 	useGetAllNotificationsQuery,
-// 	useCreateNotificationMutation,
-// 	useDeleteAllNotificationsMutation,
-// 	useGetNotificationQuery,
-// 	useDeleteNotificationMutation
-// } = NotificationApi;
-
-/**
- * This is the base RTK Query API slice.
- * We'll define multiple endpoints for notifications here.
- */
 import { apiService as api } from 'app/store/apiService';
-import WebSocket from 'ws';
 
-export const addTagTypes = ['notifications', 'notification'];
-const notificationsApi = api
+export const addTagTypes = ['NotificationsList', 'Notification', 'NotificationUnreadCount', 'ArchivedNotificationsList'];
+
+const transformPaginatedNotifications = (response) => {
+	const data = { data: response?.data || [] };
+
+	if (response?.pagination) {
+		data.totalPages = response.pagination.totalPages;
+		data.totalElements = response.pagination.totalElements;
+		data.pageSize = response.pagination.pageSize;
+		data.pageIndex = response.pagination.pageNumber ?? response.pagination.pageIndex;
+	}
+
+	return data;
+};
+
+const NotificationApi = api
 	.enhanceEndpoints({
 		addTagTypes
 	})
 	.injectEndpoints({
 		endpoints: (builder) => ({
-			getAllNotifications: builder.query({
-				query: () => ({ url: `/notification` }),
-				providesTags: [{ type: 'allNotifications', id: 'LIST' }]
-			}),
-			getUserNotifications: builder.query({
-				query: (userId) => `notification/user/${userId}`,
-				providesTags: (result, error, arg) =>
-					result && Array.isArray(result) && typeof result.map === 'function'
+			getNotifications: builder.query({
+				query: ({ pageNumber = 1, pageSize = 20 } = {}) => ({
+					url: '/notifications',
+					params: { pageNumber, pageSize }
+				}),
+				transformResponse: transformPaginatedNotifications,
+				providesTags: (result) =>
+					result?.data?.length
 						? [
-								...result.map((n) => ({ type: 'notification', id: n.id })),
-								{ type: 'notification', id: 'LIST' }
+								...result.data.map((notification) => ({
+									type: 'Notification',
+									id: notification.id
+								})),
+								{ type: 'NotificationsList', id: 'LIST' }
 							]
-						: [{ type: 'notification', id: 'LIST' }]
+						: [{ type: 'NotificationsList', id: 'LIST' }]
 			}),
-			deleteAllNotifications: builder.mutation({
-				query: () => ({ url: `/notification`, method: 'DELETE' }),
-				invalidatesTags: [{ type: 'allNotifications', id: 'LIST' }]
+			getArchivedNotifications: builder.query({
+				query: ({ pageNumber = 1, pageSize = 20 } = {}) => ({
+					url: '/notifications/archive',
+					params: { pageNumber, pageSize }
+				}),
+				transformResponse: transformPaginatedNotifications,
+				providesTags: [{ type: 'ArchivedNotificationsList', id: 'LIST' }]
 			}),
-			// 2) Admin streaming notifications
-			getAdminNotifications: builder.query({
-				// The initial fetch to load existing notifications
-				query: () => ({ url: `/notification`, method: 'GET' }),
-				// Now we add the streaming logic with onCacheEntryAdded
-				async onCacheEntryAdded(arg, { updateCachedData, cacheDataLoaded, cacheEntryRemoved }) {
-					// We'll open a WebSocket to receive new admin notifications in real-time
-					const ws = new WebSocket('ws://localhost:8080/ws');
-
-					try {
-						// Wait until the initial query data is in cache before processing updates
-						await cacheDataLoaded;
-
-						// Set up a listener for incoming WebSocket messages
-						const listener = (event) => {
-							const data = JSON.parse(event.data);
-
-							// Suppose your Spring Boot sends notifications in the same shape
-							// E.g.: { id, title, description, ... }
-
-							// Update the query cache with the newly received notification
-							updateCachedData((draft) => {
-								// If it's a new notification, add to the front or back of the array
-								draft.unshift(data);
-							});
-						};
-
-						ws.addEventListener('message', listener);
-					} catch (err) {
-						// If cacheEntryRemoved resolves before cacheDataLoaded,
-						// we abort our setup since the query is no longer subscribed
-					}
-
-					// When the caller unsubscribes or component unmounts, close the socket
-					await cacheEntryRemoved;
-					ws.close();
-				},
-				// We can add providesTags or transformResponse if needed
-				providesTags: (result, error, arg) =>
-					result && Array.isArray(result) && typeof result.map === 'function'
-						? [
-								...result.map((notif) => ({ type: 'notification', id: notif.id })),
-								{ type: 'notification', id: 'LIST' }
-							]
-						: [{ type: 'notification', id: 'LIST' }]
+			getNotificationUpdates: builder.query({
+				query: (since) => ({
+					url: '/notifications/updates',
+					params: since ? { since } : undefined
+				}),
+				transformResponse: (response) => response?.data || []
 			}),
-
-			// 3) Mutation to mark notification as read
+			getUnreadNotificationCount: builder.query({
+				query: () => ({ url: '/notifications/unread-count' }),
+				transformResponse: (response) => response?.data ?? 0,
+				providesTags: [{ type: 'NotificationUnreadCount', id: 'COUNT' }]
+			}),
+			getNotification: builder.query({
+				query: (notificationId) => ({
+					url: `/notifications/${notificationId}`
+				}),
+				transformResponse: (response) => response?.data || response,
+				providesTags: (result, error, notificationId) => [{ type: 'Notification', id: notificationId }]
+			}),
 			markNotificationAsRead: builder.mutation({
 				query: (notificationId) => ({
-					url: `notification/${notificationId}/read`,
-					method: 'PUT'
+					url: `/notifications/${notificationId}/read`,
+					method: 'POST'
 				}),
-				invalidatesTags: (result, error, arg) => [{ type: 'notification', id: arg }]
+				invalidatesTags: (result, error, notificationId) => [
+					{ type: 'Notification', id: notificationId },
+					{ type: 'NotificationsList', id: 'LIST' },
+					{ type: 'NotificationUnreadCount', id: 'COUNT' }
+				]
 			}),
-
-			// 4) Mutation to create a notification
-			// If admin is creating or you have some logic for it, you can define it here
-			createNotification: builder.mutation({
-				query: (newNotif) => ({
-					url: `notification/create`,
-					method: 'POST',
-					body: newNotif
-				}),
-				invalidatesTags: [{ type: 'notification', id: 'LIST' }]
-			}),
-			deleteNotification: builder.mutation({
+			archiveNotification: builder.mutation({
 				query: (notificationId) => ({
-					url: `/notification/${notificationId}`,
-					method: 'DELETE'
+					url: `/notifications/${notificationId}/archive`,
+					method: 'POST'
 				}),
-				invalidatesTags: [{ type: 'notification', id: 'LIST' }]
+				invalidatesTags: [
+					{ type: 'NotificationsList', id: 'LIST' },
+					{ type: 'ArchivedNotificationsList', id: 'LIST' },
+					{ type: 'NotificationUnreadCount', id: 'COUNT' }
+				]
+			}),
+			sendAdminNotification: builder.mutation({
+				query: (payload) => ({
+					url: '/admin/notifications/send',
+					method: 'POST',
+					data: payload
+				})
 			})
-		})
+		}),
+		overrideExisting: true
 	});
 
+export default NotificationApi;
+
 export const {
-	useGetAllNotificationsQuery,
-	useGetUserNotificationsQuery,
-	useGetAdminNotificationsQuery,
+	useGetNotificationsQuery,
+	useGetArchivedNotificationsQuery,
+	useGetNotificationUpdatesQuery,
+	useLazyGetNotificationUpdatesQuery,
+	useGetUnreadNotificationCountQuery,
+	useLazyGetUnreadNotificationCountQuery,
+	useGetNotificationQuery,
 	useMarkNotificationAsReadMutation,
-	useDeleteAllNotificationsMutation,
-	useCreateNotificationMutation,
-	useDeleteNotificationMutation
-} = notificationsApi;
+	useArchiveNotificationMutation,
+	useSendAdminNotificationMutation
+} = NotificationApi;
+
+// Backward-compatible aliases used by existing components
+export const useGetAllNotificationsQuery = useGetNotificationsQuery;
+export const useDeleteNotificationMutation = useArchiveNotificationMutation;
+export const useCreateNotificationMutation = useSendAdminNotificationMutation;
+export const useGetAdminNotificationsQuery = useGetNotificationsQuery;

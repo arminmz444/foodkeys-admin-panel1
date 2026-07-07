@@ -1,24 +1,22 @@
 import Badge from '@mui/material/Badge';
 import IconButton from '@mui/material/IconButton';
-import { useAppDispatch } from 'app/store/hooks';
+import { useAppDispatch, useAppSelector } from 'app/store/hooks';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useTheme } from '@mui/material';
 import { toggleNotificationPanel } from './notificationPanelSlice';
-import { useGetAllNotificationsQuery } from './NotificationApi';
+import { selectUnreadCount } from './models/notificationSlice';
 
-/**
- * The notification panel toggle button.
- */
 function NotificationPanelToggleButton(props) {
 	const { children = <FuseSvgIcon>heroicons-outline:bell</FuseSvgIcon> } = props;
-	const { data: notifications } = useGetAllNotificationsQuery();
+	const unreadCount = useAppSelector(selectUnreadCount);
 	const [animate, setAnimate] = useState(false);
-	const prevNotificationCount = useRef(notifications?.length);
+	const prevUnreadCount = useRef(unreadCount);
 	const theme = useTheme();
 	const dispatch = useAppDispatch();
 	const controls = useAnimation();
+
 	useEffect(() => {
 		if (animate) {
 			controls.start({
@@ -29,17 +27,20 @@ function NotificationPanelToggleButton(props) {
 		} else {
 			controls.start({ rotate: 0, scale: 1, color: theme.palette.text.secondary });
 		}
-	}, [animate, controls]);
+	}, [animate, controls, theme.palette.secondary.main, theme.palette.text.secondary]);
+
 	useEffect(() => {
-		if (notifications?.length > prevNotificationCount.current) {
+		if (unreadCount > prevUnreadCount.current) {
 			setAnimate(true);
-			const timer = setTimeout(() => setAnimate(false), 1000); // Reset after 1 second
+			const timer = setTimeout(() => setAnimate(false), 1000);
+			prevUnreadCount.current = unreadCount;
 			return () => clearTimeout(timer);
 		}
 
-		prevNotificationCount.current = notifications?.length;
+		prevUnreadCount.current = unreadCount;
 		return undefined;
-	}, [notifications?.length]);
+	}, [unreadCount]);
+
 	return (
 		<IconButton
 			className="h-40 w-40"
@@ -48,8 +49,9 @@ function NotificationPanelToggleButton(props) {
 		>
 			<Badge
 				color="secondary"
-				variant="dot"
-				invisible={notifications?.length === 0}
+				badgeContent={unreadCount > 0 ? unreadCount : null}
+				max={99}
+				invisible={unreadCount === 0}
 			>
 				<motion.div animate={controls}>{children}</motion.div>
 			</Badge>
