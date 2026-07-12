@@ -124,6 +124,8 @@ function JwtAuthProvider(props) {
 					const responseData = response?.data?.data;
 					// Extract user object from response
 					const userData = responseData?.user || responseData;
+					if (userData) userData.accesses = responseData.accesses;
+
 					// Token is valid
 					handleSignInSuccess(userData, accessToken);
 					return true;

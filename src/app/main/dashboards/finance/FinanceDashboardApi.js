@@ -9,7 +9,22 @@ const FinanceDashboardApi = api
   .injectEndpoints({
     endpoints: (build) => ({
       getFinanceDashboardWidgets: build.query({
-        query: () => ({ url: `/dashboard/finance/widgets/all` }),
+        query: (params = {}) => {
+          const queryParams = {};
+          if (params.dateFrom) queryParams.dateFrom = params.dateFrom;
+          if (params.dateTo) queryParams.dateTo = params.dateTo;
+          if (params.status) queryParams.status = params.status;
+          if (params.user) queryParams.user = params.user;
+          if (params.userId) queryParams.userId = params.userId;
+          if (params.transactionType && params.transactionType !== "all") {
+            queryParams.transactionType = params.transactionType;
+          }
+          if (params.granularity) queryParams.granularity = params.granularity;
+          return {
+            url: `/dashboard/finance/widgets/all`,
+            params: queryParams,
+          };
+        },
         transformResponse: (response) => response.data,
         providesTags: ["finance_dashboard_widgets"],
       }),
@@ -130,17 +145,11 @@ const FinanceDashboardApi = api
       }),
 
       generateBill: build.mutation({
-        query: (paymentId) => ({
-          url: `payments/${paymentId}/bill`,
+        query: (transactionId) => ({
+          url: `/billing-info/generate-bill/${transactionId}`,
           method: "POST",
+          responseType: "blob",
         }),
-        transformResponse: (response) => response.data,
-        invalidatesTags: (result, error, id) => [
-          { type: "Payment", id },
-          { type: "Bill", id: "LIST" },
-          { type: "Bill", id: "MY_LIST" },
-          "Dashboard",
-        ],
       }),
 
       // Bills

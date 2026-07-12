@@ -1,142 +1,59 @@
-// import FusePageSimple from '@fuse/core/FusePageSimple';
-// import { motion } from 'framer-motion';
-// import FuseLoading from '@fuse/core/FuseLoading';
-// import FinanceDashboardAppHeader from './FinanceDashboardAppHeader';
-// import PreviousStatementWidget from './widgets/PreviousStatementWidget';
-// import CurrentStatementWidget from './widgets/CurrentStatementWidget';
-// import AccountBalanceWidget from './widgets/AccountBalanceWidget';
-// import RecentTransactionsWidget from './widgets/RecentTransactionsWidget';
-// import BudgetWidget from './widgets/BudgetWidget';
-// import { useGetFinanceDashboardWidgetsQuery } from './FinanceDashboardApi';
-// import RecentPaymentsWidget from './widgets/RecentPaymentsWidget.jsx';
-
-// const container = {
-// 	show: {
-// 		transition: {
-// 			staggerChildren: 0.04
-// 		}
-// 	}
-// };
-// const item = {
-// 	hidden: { opacity: 0, y: 20 },
-// 	show: { opacity: 1, y: 0 }
-// };
-
-// /**
-//  * The finance dashboard app.
-//  */
-// function FinanceDashboardApp() {
-// 	const { data: widgets, isLoading } = useGetFinanceDashboardWidgetsQuery();
-
-// 	if (isLoading) {
-// 		return <FuseLoading />;
-// 	}
-
-// 	if (!widgets) {
-// 		return null;
-// 	}
-
-// 	return (
-// 		<FusePageSimple
-// 			header={<FinanceDashboardAppHeader />}
-// 			content={
-// 				<div className="w-full px-24 md:px-32 pb-24">
-// 					<motion.div
-// 						className="w-full"
-// 						variants={container}
-// 						initial="hidden"
-// 						animate="show"
-// 					>
-// 						<div className="grid grid-cols-1 xl:grid-cols-2 gap-32 w-full mt-32">
-// 							<div className="grid gap-32 sm:grid-flow-col xl:grid-flow-row">
-// 								<motion.div
-// 									variants={item}
-// 									className="flex flex-col flex-auto"
-// 								>
-// 									<PreviousStatementWidget />
-// 								</motion.div>
-
-// 								<motion.div
-// 									variants={item}
-// 									className="flex flex-col flex-auto"
-// 								>
-// 									<CurrentStatementWidget />
-// 								</motion.div>
-// 							</div>
-// 							<motion.div
-// 								variants={item}
-// 								className="flex flex-col flex-auto"
-// 							>
-// 								<AccountBalanceWidget />
-// 							</motion.div>
-// 						</div>
-// 						<div className="grid grid-cols-1 xl:grid-cols-3 gap-32 w-full mt-32">
-// 							<motion.div
-// 								variants={item}
-// 								className="xl:col-span-2 flex flex-col flex-auto"
-// 							>
-// 								<RecentTransactionsWidget />
-// 							</motion.div>
-// 							<motion.div
-// 								variants={item}
-// 								className="xl:col-span-2 flex flex-col flex-auto"
-// 							>
-// 								<RecentPaymentsWidget />
-// 							</motion.div>
-// 							<motion.div
-// 								variants={item}
-// 								className="flex flex-col flex-auto"
-// 							>
-// 								<BudgetWidget />
-// 							</motion.div>
-// 						</div>
-// 					</motion.div>
-// 				</div>
-// 			}
-// 		/>
-// 	);
-// }
-
-// export default FinanceDashboardApp;
-
-// src/app/main/dashboards/finance/FinanceDashboardApp.jsx
+import { useState, useMemo, useCallback } from 'react';
 import FusePageSimple from '@fuse/core/FusePageSimple';
 import { motion } from 'framer-motion';
-import FuseLoading from '@fuse/core/FuseLoading';
 import FinanceDashboardAppHeader from './FinanceDashboardAppHeader';
 import { FinanceDashboardWidgets } from './components';
 import { useGetFinanceDashboardWidgetsQuery } from './FinanceDashboardApi';
+import { buildWidgetQueryParams, getDateParams } from './financeDashboardUtils';
 
 const container = {
   show: {
     transition: {
-      staggerChildren: 0.04
-    }
-  }
+      staggerChildren: 0.04,
+    },
+  },
 };
 
-const _item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+const initialDates = getDateParams(30);
+
+const DEFAULT_FILTERS = {
+  dateRange: '30d',
+  dateFrom: initialDates.dateFrom || '',
+  dateTo: initialDates.dateTo || '',
+  status: '',
+  user: '',
+  transactionType: 'all',
+  granularity: 'DAILY',
 };
 
 /**
  * The finance dashboard app.
  */
 function FinanceDashboardApp() {
-  const { data: _widgets, isLoading, refetch, isFetching } = useGetFinanceDashboardWidgetsQuery();
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  const handleRefresh = () => {
+  const queryParams = useMemo(() => buildWidgetQueryParams(filters), [filters]);
+
+  const { data: widgets, isLoading, refetch, isFetching } = useGetFinanceDashboardWidgetsQuery(queryParams);
+
+  const handleRefresh = useCallback(() => {
     refetch();
-  };
+  }, [refetch]);
 
-  if (isLoading) {
-    return <FuseLoading />;
-  }
+  const handleFiltersChange = useCallback((nextFilters) => {
+    setFilters(nextFilters);
+  }, []);
 
   return (
     <FusePageSimple
-      header={<FinanceDashboardAppHeader onRefresh={handleRefresh} isRefreshing={isFetching} />}
+      header={
+        <FinanceDashboardAppHeader
+          onRefresh={handleRefresh}
+          isRefreshing={isFetching}
+          appliedFilters={widgets?.appliedFilters}
+          summary={widgets?.summary}
+        />
+      }
       content={
         <div className="w-full py-24 px-24 md:px-32 pb-24">
           <motion.div
@@ -145,7 +62,13 @@ function FinanceDashboardApp() {
             initial="hidden"
             animate="show"
           >
-            <FinanceDashboardWidgets />
+            <FinanceDashboardWidgets
+              widgets={widgets}
+              isLoading={isLoading}
+              isFetching={isFetching}
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+            />
           </motion.div>
         </div>
       }

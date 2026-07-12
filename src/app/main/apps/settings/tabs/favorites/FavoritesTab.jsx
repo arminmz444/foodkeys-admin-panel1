@@ -12,6 +12,7 @@ import {
 	HiOutlineHeart
 } from 'react-icons/hi';
 import CompanyFavoritesSection from './CompanyFavoritesSection';
+import ServiceFavoritesSection from './ServiceFavoritesSection';
 import ComingSoonSection from './ComingSoonSection';
 
 // Tab panel component
@@ -172,11 +173,7 @@ function FavoritesTab() {
 							<CompanyFavoritesSection />
 						</TabPanel>
 						<TabPanel value={activeTab} index={1}>
-							<ComingSoonSection 
-								title="خدمات منتخب"
-								description="امکان مدیریت خدمات منتخب به زودی اضافه خواهد شد"
-								icon={<HiOutlineCog size={64} />}
-							/>
+							<ServiceFavoritesSection />
 						</TabPanel>
 						<TabPanel value={activeTab} index={2}>
 							<ComingSoonSection 

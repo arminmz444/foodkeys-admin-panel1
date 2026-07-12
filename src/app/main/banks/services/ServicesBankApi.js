@@ -259,6 +259,7 @@ export const serviceApi = api
 
 export const {
   useGetServicesQuery,
+  useLazyGetServicesQuery,
   useGetServicesSubCategoriesByCategoryIdQuery,
   useGetServicesSubCategoriesQuery,
   useGetServiceByIdQuery,

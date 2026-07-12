@@ -13,8 +13,6 @@ function ServicesBank() {
       setActiveTab(1);
     } else if (location.pathname.includes('/requests')) {
       setActiveTab(2);
-    } else if (location.pathname.includes('/archive')) {
-      setActiveTab(3);
     } else {
       setActiveTab(0);
     }
@@ -31,9 +29,9 @@ function ServicesBank() {
       case 2:
         navigate('/banks/service/requests');
         break;
-      case 3:
-        navigate('/banks/service/archive');
-        break;
+      // case 3:
+      //   navigate('/banks/service/archive');
+      //   break;
       default:
         navigate('/banks/service');
     }
@@ -47,7 +45,6 @@ function ServicesBank() {
           <Tab label="سرویس‌ها" />
           <Tab label="ساختار سرویس" />
           <Tab label="درخواست‌های سرویس" />
-          <Tab label="آرشیو سرویس" />
         </Tabs>
       </Box>
       <Outlet />

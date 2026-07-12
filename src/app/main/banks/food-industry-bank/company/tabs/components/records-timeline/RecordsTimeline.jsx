@@ -636,8 +636,17 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { motion } from 'framer-motion';
 import EditorJSComponent from 'app/shared-components/editor-js/EditorJSComponent';
 import { getServerFile } from 'src/utils/string-utils';
-import Output from 'editorjs-react-renderer'; // Import editorjs-react-renderer
+import Output from 'editorjs-react-renderer';
+import {format} from "date-fns-jalali"; // Import editorjs-react-renderer
 
+function formatDateJalali(dateString) {
+  if (!dateString) return '-';
+  try {
+    return format(new Date(dateString), 'yyyy/MM/dd - HH:mm');
+  } catch {
+    return dateString;
+  }
+}
 // Enhanced styles for RTL support
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -1025,7 +1034,7 @@ const RecordCard = ({
     <TimelineItem>
       <TimelineOppositeContent>
         <Typography variant="body2" color="textSecondary">
-          {record.createdAtStr || new Date(record.createdAt).toLocaleString('fa-IR')}
+          {formatDateJalali(record.createdAt) || new Date(record.createdAt).toLocaleString('fa-IR')}
         </Typography>
       </TimelineOppositeContent>
       <TimelineSeparator>

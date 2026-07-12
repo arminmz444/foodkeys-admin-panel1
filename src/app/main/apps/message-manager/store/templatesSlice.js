@@ -147,7 +147,14 @@ export const templatesSlice = createSlice({
       state.selectedSmsTemplate = action.payload;
     },
     setEmailTemplates: (state, action) => {
-      state.emailTemplates = action.payload;
+      const all = action.payload || [];
+      state.systemEmailTemplates = all.filter((t) => t.isSystem);
+      state.emailTemplates = all.filter((t) => !t.isSystem);
+    },
+    setSmsTemplates: (state, action) => {
+      const all = action.payload || [];
+      state.systemSmsTemplates = all.filter((t) => t.isSystem);
+      state.smsTemplates = all.filter((t) => !t.isSystem);
     },
     addEmailTemplate: (state, action) => {
       state.emailTemplates = [...state.emailTemplates, action.payload];
@@ -198,6 +205,7 @@ export const {
   setSelectedEmailTemplate,
   setSelectedSmsTemplate,
   setEmailTemplates,
+  setSmsTemplates,
   addEmailTemplate,
   addSmsTemplate,
   updateEmailTemplate,

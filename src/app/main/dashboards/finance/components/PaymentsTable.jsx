@@ -380,17 +380,17 @@ const PaymentsTable = () => {
                                             >
                                                 جزئیات
                                             </Button>
-                                            {payment.hasBill && (
-                                                <Tooltip title="دریافت فاکتور">
-                                                    <IconButton
-                                                        color="primary"
-                                                        size="small"
-                                                        onClick={() => window.open(`/api/v1/payments/${payment.id}/invoice`, '_blank')}
-                                                    >
-                                                        <ReceiptIcon fontSize="small"/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
+                                            {/*{payment.hasBill && (*/}
+                                            {/*    <Tooltip title="دریافت فاکتور">*/}
+                                            {/*        <IconButton*/}
+                                            {/*            color="primary"*/}
+                                            {/*            size="small"*/}
+                                            {/*            onClick={() => window.open(`/api/v1/payments/${payment.id}/invoice`, '_blank')}*/}
+                                            {/*        >*/}
+                                            {/*            <ReceiptIcon fontSize="small"/>*/}
+                                            {/*        </IconButton>*/}
+                                            {/*    </Tooltip>*/}
+                                            {/*)}*/}
                                         </Box>
                                     </TableCell>
                                 </TableRow>
@@ -500,8 +500,8 @@ const PaymentsTable = () => {
                                 >
                                     <MenuItem value="">همه</MenuItem>
                                     <MenuItem value="INCREASE_CREDIT">افزایش اعتبار</MenuItem>
-                                    <MenuItem value="SUBMIT_COMPANY">ثبت شرکت</MenuItem>
-                                    <MenuItem value="PURCHASE_SUBSCRIPTION">خرید اشتراک</MenuItem>
+                                    {/*<MenuItem value="TRANSFER_CREDIT">انتقال اعتبار</MenuItem>*/}
+                                    {/*<MenuItem value="BUY_SUBSCRIPTION">خرید اشتراک</MenuItem>*/}
                                 </Select>
                             </FormControl>
 

@@ -1,7 +1,7 @@
 import { apiService as api } from 'app/store/apiService';
 
 // Tag types for related entities
-const addTagTypes = ['RelatedEntity', 'RelatedCompany'];
+const addTagTypes = ['RelatedEntity', 'RelatedCompany', 'RelatedService'];
 
 const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 	endpoints: (builder) => ({
@@ -284,6 +284,165 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 			]
 		}),
 
+		// ========== Service-Specific Endpoints ==========
+
+		// Get related services (enriched, website format)
+		getRelatedServicesEnriched: builder.query({
+			query: (serviceId) => ({
+				url: `/related/service/${serviceId}`,
+				method: 'GET'
+			}),
+			transformResponse: (response) => response?.data || [],
+			providesTags: (result, error, serviceId) => [
+				{ type: 'RelatedService', id: serviceId }
+			],
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
+		}),
+
+		// Get related services with pagination (admin format)
+		getRelatedServicesPaginated: builder.query({
+			query: ({ serviceId, pageNumber = 1, pageSize = 10 }) => ({
+				url: `/related/service/${serviceId}/paginated`,
+				method: 'GET',
+				params: { pageNumber, pageSize }
+			}),
+			transformResponse: (response) => {
+				const data = { data: response?.data || [] };
+				if (response && response.pagination) {
+					data.totalPages = response.pagination.totalPages;
+					data.totalElements = response.pagination.totalElements;
+					data.pageSize = response.pagination.pageSize;
+					data.pageNumber = response.pagination.pageNumber;
+				}
+				return data;
+			},
+			providesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			],
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
+		}),
+
+		// Add single related service
+		addRelatedService: builder.mutation({
+			query: ({ serviceId, relatedServiceId, displayOrder }) => ({
+				url: `/related/service/${serviceId}/related/${relatedServiceId}`,
+				method: 'POST',
+				params: displayOrder ? { displayOrder } : {}
+			}),
+			transformResponse: (response) => response?.data,
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Add multiple related services (batch)
+		addRelatedServicesBatch: builder.mutation({
+			query: ({ serviceId, relatedServiceIds }) => ({
+				url: `/related/service/${serviceId}/batch`,
+				method: 'POST',
+				data: relatedServiceIds
+			}),
+			transformResponse: (response) => response?.data,
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Remove single related service
+		removeRelatedService: builder.mutation({
+			query: ({ serviceId, relatedServiceId }) => ({
+				url: `/related/service/${serviceId}/related/${relatedServiceId}`,
+				method: 'DELETE'
+			}),
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Remove multiple related services (batch)
+		removeRelatedServicesBatch: builder.mutation({
+			query: ({ serviceId, relatedServiceIds }) => ({
+				url: `/related/service/${serviceId}/batch`,
+				method: 'DELETE',
+				data: relatedServiceIds
+			}),
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Reorder related services
+		reorderRelatedServices: builder.mutation({
+			query: ({ serviceId, orderedServiceIds }) => ({
+				url: `/related/service/${serviceId}/reorder`,
+				method: 'PUT',
+				data: orderedServiceIds
+			}),
+			transformResponse: (response) => response?.data,
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Update display order for single related service
+		updateRelatedServiceOrder: builder.mutation({
+			query: ({ serviceId, relatedServiceId, newDisplayOrder }) => ({
+				url: `/related/service/${serviceId}/related/${relatedServiceId}/order`,
+				method: 'PUT',
+				params: { newDisplayOrder }
+			}),
+			transformResponse: (response) => response?.data,
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Toggle related service
+		toggleRelatedService: builder.mutation({
+			query: ({ serviceId, relatedServiceId }) => ({
+				url: `/related/service/${serviceId}/related/${relatedServiceId}/toggle`,
+				method: 'POST'
+			}),
+			transformResponse: (response) => response?.data,
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Remove all related services
+		removeAllRelatedServices: builder.mutation({
+			query: ({ serviceId, softDelete = false }) => ({
+				url: `/related/service/${serviceId}/all`,
+				method: 'DELETE',
+				params: { softDelete }
+			}),
+			invalidatesTags: (result, error, { serviceId }) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
+		// Normalize related services order
+		normalizeRelatedServicesOrder: builder.mutation({
+			query: (serviceId) => ({
+				url: `/related/service/${serviceId}/normalize`,
+				method: 'POST'
+			}),
+			invalidatesTags: (result, error, serviceId) => [
+				{ type: 'RelatedService', id: serviceId },
+				{ type: 'RelatedService', id: `paginated-${serviceId}` }
+			]
+		}),
+
 		// ========== Search Companies (for adding related) ==========
 		searchCompaniesForRelated: builder.query({
 			query: ({ search = '', pageNumber = 1, pageSize = 10, categoryId, subCategoryId }) => {
@@ -293,6 +452,33 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 				if (subCategoryId) params.subCategoryId = subCategoryId;
 				return {
 					url: '/company/',
+					method: 'GET',
+					params
+				};
+			},
+			transformResponse: (response) => {
+				const data = { data: response?.data || [] };
+				if (response && response.pagination) {
+					data.totalPages = response.pagination.totalPages;
+					data.totalElements = response.pagination.totalElements;
+					data.pageSize = response.pagination.pageSize;
+					data.pageNumber = response.pagination.pageNumber;
+				}
+				return data;
+			},
+			keepUnusedDataFor: 0,
+			refetchOnMountOrArgChange: true
+		}),
+
+		// ========== Search Services (for adding related) ==========
+		searchServicesForRelated: builder.query({
+			query: ({ search = '', pageNumber = 1, pageSize = 10, categoryId, subCategoryId }) => {
+				const params = { pageNumber, pageSize };
+				if (search) params.search = search;
+				if (categoryId) params.categoryId = categoryId;
+				if (subCategoryId) params.subCategoryId = subCategoryId;
+				return {
+					url: '/service/',
 					method: 'GET',
 					params
 				};
@@ -343,5 +529,20 @@ export const {
 	
 	// Search
 	useSearchCompaniesForRelatedQuery,
-	useLazySearchCompaniesForRelatedQuery
+	useLazySearchCompaniesForRelatedQuery,
+
+	// Service-specific endpoints
+	useGetRelatedServicesEnrichedQuery,
+	useGetRelatedServicesPaginatedQuery,
+	useAddRelatedServiceMutation,
+	useAddRelatedServicesBatchMutation,
+	useRemoveRelatedServiceMutation,
+	useRemoveRelatedServicesBatchMutation,
+	useReorderRelatedServicesMutation,
+	useUpdateRelatedServiceOrderMutation,
+	useToggleRelatedServiceMutation,
+	useRemoveAllRelatedServicesMutation,
+	useNormalizeRelatedServicesOrderMutation,
+	useSearchServicesForRelatedQuery,
+	useLazySearchServicesForRelatedQuery
 } = RelatedEntityApi;

@@ -10,7 +10,7 @@ import { getServerFile } from 'src/utils/string-utils';
 import { useState, useEffect } from 'react';
 import { Alert, CircularProgress, FormControl, InputLabel, MenuItem, Select, Snackbar } from '@mui/material';
 import { useAppSelector } from 'app/store/hooks';
-import { selectUser } from 'src/app/auth/user/store/userSlice';
+import {selectIsUserAdmin, selectUser} from 'src/app/auth/user/store/userSlice';
 import {
 	useCreateCompanyMutation,
 	useUpdateCompanyMutation,
@@ -37,10 +37,11 @@ function CompanyHeader() {
   const status = watch('status');
 
 	// Get current user data and check for ADMIN_ACCESS
-	const user = useAppSelector(selectUser);
-	const hasAdminAccess = user?.data?.accesses?.includes('ADMIN_ACCESS') || 
-		user?.accesses?.includes('ADMIN_ACCESS') || 
-		user?.userAccesses?.some(access => access.name === 'ADMIN_ACCESS');
+	// const user = useAppSelector(selectUser);
+	// const hasAdminAccess = user?.data?.accesses?.includes('ADMIN_ACCESS') ||
+	// 	user?.accesses?.includes('ADMIN_ACCESS') ||
+	// 	user?.userAccesses?.some(access => access.name === 'ADMIN_ACCESS');
+	const hasAdminAccess = useAppSelector(selectIsUserAdmin);
 
 	// Set default status based on user permissions
 	useEffect(() => {

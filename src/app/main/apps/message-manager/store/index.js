@@ -1,11 +1,9 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import templates from "./templatesSlice";
-import { templatesApi } from "./templatesApi";
 
-
+// templatesApi is injected into the shared apiService — no local API reducer needed
 const reducer = combineReducers({
-  templates,
-  [templatesApi.reducerPath]: templatesApi.reducer
+  templates
 });
 
 export default reducer;

@@ -18,17 +18,17 @@ const PaymentDetails = ({ payment }) => {
             <Typography variant="h6" component="h3">
               اطلاعات کلی
             </Typography>
-            {payment.hasBill && (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<ReceiptIcon />}
-                onClick={() => window.open(`/api/v1/payments/${payment.id}/invoice`, '_blank')}
-                size="small"
-              >
-                دریافت فاکتور
-              </Button>
-            )}
+            {/*{payment.hasBill && (*/}
+            {/*  <Button*/}
+            {/*    variant="contained"*/}
+            {/*    color="primary"*/}
+            {/*    startIcon={<ReceiptIcon />}*/}
+            {/*    onClick={() => window.open(`/api/v1/payments/${payment.id}/invoice`, '_blank')}*/}
+            {/*    size="small"*/}
+            {/*  >*/}
+            {/*    دریافت فاکتور*/}
+            {/*  </Button>*/}
+            {/*)}*/}
           </Box>
           
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>

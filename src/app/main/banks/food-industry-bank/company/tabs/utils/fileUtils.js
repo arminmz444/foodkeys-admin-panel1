@@ -266,6 +266,10 @@ export const fileServiceTypeDisplayNames = {
   COMPANY_GALLERY_CONTACT: 'مخاطبین',
   COMPANY_GALLERY_CATALOG: 'کاتالوگ',
   COMPANY_GALLERY_SLIDER: 'اسلایدر',
+  SERVICE_LOGO: 'لوگو سرویس',
+  SERVICE_BACKGROUND_IMAGE: 'تصویر پس‌زمینه سرویس',
+  SERVICE_GALLERY_SLIDER: 'اسلایدر سرویس',
+  SERVICE_GALLERY_VIDEO: 'ویدیو سرویس',
 };
 
 export const getFileServiceTypeDisplayName = (fileServiceType) => {

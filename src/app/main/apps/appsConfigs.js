@@ -20,6 +20,7 @@ import WorkflowBuilderAppConfig from "./workflow-builder/WorkflowBuilderAppConfi
 import AccessManagementAppConfig from "./access-management/AccessManagementAppConfig.jsx";
 import WorkflowAppConfig from "./workflow/WorkflowAppConfig.jsx";
 import MessageManagerAppConfig from "./message-manager/MessageManagerAppConfig.jsx";
+import NotificationAdminAppConfig from "./notification-admin/NotificationAdminAppConfig.jsx";
 import ActivityLogManagerAppConfig from "./activity-log-manager/ActivityLogManagerAppConfig.jsx";
 import FormBuilderAppConfig from "./form-builder/FormBuilderAppConfig";
 import AnnouncementBuilderAppConfig from "./announcement-builder/AnnouncementBuilderAppConfig";
@@ -61,6 +62,7 @@ const appsConfigs = [
   AccessManagementAppConfig,
   WorkflowAppConfig,
   MessageManagerAppConfig,
+  NotificationAdminAppConfig,
   ActivityLogManagerAppConfig,
   FormBuilderAppConfig,
   AnnouncementBuilderAppConfig,

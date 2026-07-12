@@ -577,7 +577,7 @@ function CompanyFavoritesSection() {
 	const [reorderFavorites, { isLoading: isReordering }] = useReorderCompanyFavoritesMutation();
 
 	// Categories list for autocomplete
-	const categoryOptions = categoriesData?.data || [];
+	const categoryOptions = (categoriesData?.data || []).filter(c => c.value === 1 || c.value === 2);
 	
 	// Subcategories list for autocomplete
 	const subCategoryOptions = subCategoriesData?.data || [];

@@ -32,7 +32,7 @@ import {
   RestoreFromTrash as RestoreIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { format } from 'date-fns-jalali';
 import { faIR } from 'date-fns/locale';
 
 function ArchiveCard({ 
@@ -72,6 +72,15 @@ function ArchiveCard({
       return dateString || '-';
     }
   };
+
+  function formatDateJalali(dateString) {
+    if (!dateString) return '-';
+    try {
+      return format(new Date(dateString), 'yyyy/MM/dd - HH:mm');
+    } catch {
+      return dateString;
+    }
+  }
   
   // Handle menu open
   const handleOpenMenu = (e) => {
@@ -175,7 +184,7 @@ function ArchiveCard({
             </Typography>
           </Tooltip>
         }
-        subheader={formatDate(archive.createdAt)}
+        subheader={formatDateJalali(archive.createdAt)}
       />
       <CardActionArea onClick={compareMode ? onSelect : onView}>
         <CardContent>

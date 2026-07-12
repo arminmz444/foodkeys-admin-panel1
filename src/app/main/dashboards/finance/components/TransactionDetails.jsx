@@ -8,15 +8,33 @@ import {
   Button 
 } from '@mui/material';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import {useGenerateBillMutation} from "@/app/main/dashboards/finance/FinanceDashboardApi.js";
+import LoadingButton from "@mui/lab/LoadingButton";
 
-const TransactionDetails = ({ transaction }) => {
-  const handleDownloadInvoice = () => {
-    // Redirect to invoice PDF endpoint
-    if (transaction?.hasBill) {
-      window.open(`/api/v1/payments/${transaction.id}/invoice`, '_blank');
+const TransactionDetails = ({ transaction, generateBill, isDownloadingBill, downloadingBillId }) => {
+  const handleDownloadInvoice = async (transactionId) => {
+    try {
+      const blob = await generateBill(transactionId).unwrap();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `bill-${transactionId}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Error toast is handled by apiService
     }
   };
-  
+
+  // const handleDownloadInvoice = () => {
+  //   // Redirect to invoice PDF endpoint
+  //   if (transaction?.hasBill) {
+  //     window.open(`/api/v1/payments/${transaction.id}/invoice`, '_blank');
+  //   }
+  // };
+  //
   if (!transaction) {
     return (
       <Box p={3}>
@@ -36,15 +54,16 @@ const TransactionDetails = ({ transaction }) => {
               اطلاعات کلی
             </Typography>
             {transaction.hasBill && (
-              <Button
+              <LoadingButton
+                loading={isDownloadingBill}
                 variant="contained"
                 color="primary"
                 startIcon={<ReceiptIcon />}
-                onClick={handleDownloadInvoice}
+                onClick={() => handleDownloadInvoice(transaction.id)}
                 size="small"
               >
                 دریافت فاکتور
-              </Button>
+              </LoadingButton>
             )}
           </Box>
           
@@ -53,7 +72,10 @@ const TransactionDetails = ({ transaction }) => {
               <Typography variant="subtitle2" color="textSecondary">
                 شناسه تراکنش
               </Typography>
-              <Typography variant="body1">{transaction.id}</Typography>
+              <Typography variant="body1">{transaction.refId}</Typography>
+              {transaction.invoiceId ? (<Typography variant="caption" color="textSecondary" dir="ltr">
+                شماره فاکتور: {transaction.invoiceId}
+              </Typography>) : <></>}
             </Box>
             
             <Box>

@@ -34,9 +34,11 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash.debounce';
-import { useGetMyTransactionsQuery } from '../FinanceDashboardApi';
+import { useGetMyTransactionsQuery, useGenerateBillMutation } from '../FinanceDashboardApi';
 import TransactionDetails from './TransactionDetails';
 import UserInfoModal from './UserInfoModal';
+import ReceiptIcon from "@mui/icons-material/Receipt.js";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const TransactionsTable = () => {
   const navigate = useNavigate();
@@ -58,6 +60,7 @@ const TransactionsTable = () => {
   const [openUserModal, setOpenUserModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [generateBill, { isLoading: isDownloadingBill, originalArgs: downloadingBillId }] = useGenerateBillMutation();
 
   const debouncedSetSearch = useMemo(
     () => debounce((value) => {
@@ -143,6 +146,22 @@ const TransactionsTable = () => {
   const handleCloseUserModal = () => {
     setOpenUserModal(false);
     setSelectedUserId(null);
+  };
+
+  const handleDownloadBill = async (transactionId) => {
+    try {
+      const blob = await generateBill(transactionId).unwrap();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `bill-${transactionId}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Error toast is handled by apiService
+    }
   };
   
   const getStatusChipColor = (status) => {
@@ -260,9 +279,9 @@ const TransactionsTable = () => {
               <TableRow>
                 <TableCell align="center" sx={{ textAlign: 'center' }}>
                   <TableSortLabel
-                    active={orderBy === 'id'}
-                    direction={orderBy === 'id' ? order : 'asc'}
-                    onClick={() => handleRequestSort('id')}
+                    active={orderBy === 'refId'}
+                    direction={orderBy === 'refId' ? order : 'asc'}
+                    onClick={() => handleRequestSort('refId')}
                   >
                     شناسه
                   </TableSortLabel>
@@ -310,7 +329,16 @@ const TransactionsTable = () => {
             <TableBody>
               {data?.data.map((transaction) => (
                 <TableRow key={transaction.id} hover>
-                  <TableCell align="center" sx={{ textAlign: 'center' }}>{transaction.id}</TableCell>
+                  <TableCell align="center" sx={{ textAlign: 'center' }}>
+                    <Box dir="rtl">
+                      <Typography variant="body2" component="div" dir="rtl">
+                        {transaction.refId || "- بدون شناسه -"}
+                      </Typography>
+                      {transaction.invoiceId ? (<Typography variant="caption" color="textSecondary" component="div" dir="ltr">
+                        شماره فاکتور: {transaction.invoiceId}
+                      </Typography>) : <></>}
+                    </Box>
+                  </TableCell>
                   <TableCell align="center" sx={{ textAlign: 'center' }}>{transaction.serviceNameFa || transaction.serviceName}</TableCell>
                   <TableCell align="center" sx={{ textAlign: 'center' }}>{new Intl.NumberFormat('fa-IR').format(transaction.amount)} ریال</TableCell>
                   <TableCell align="center" sx={{ textAlign: 'center' }}>
@@ -350,14 +378,31 @@ const TransactionsTable = () => {
                   </TableCell>
                   <TableCell align="center" sx={{ textAlign: 'center' }}>
                     <Box display="flex" gap={1} justifyContent="center">
-                      <Button 
-                        variant="text" 
-                        color="primary"
-                        onClick={() => handleOpenDetails(transaction)}
-                        size="small"
-                      >
-                        جزئیات
-                      </Button>
+                      <Tooltip title="جزئیات">
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          onClick={() => handleOpenDetails(transaction)}
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {transaction.hasBill && (
+                        isDownloadingBill && downloadingBillId === transaction.id ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <Tooltip title="دریافت فاکتور">
+                            <IconButton
+                              color="primary"
+                              size="small"
+                              onClick={() => handleDownloadBill(transaction.id)}
+                              disabled={isDownloadingBill}
+                            >
+                              <ReceiptIcon fontSize="small"/>
+                            </IconButton>
+                          </Tooltip>
+                        )
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -412,7 +457,10 @@ const TransactionsTable = () => {
           <DialogContent dividers>
             {selectedTransaction && (
               <TransactionDetails 
-                transaction={selectedTransaction} 
+                transaction={selectedTransaction}
+                generateBill={generateBill}
+                isDownloadingBill={isDownloadingBill}
+                downloadingBillId={downloadingBillId}
                 onClose={handleCloseDetails} 
               />
             )}
@@ -465,8 +513,8 @@ const TransactionsTable = () => {
                 >
                   <MenuItem value="">همه</MenuItem>
                   <MenuItem value="INCREASE_CREDIT">افزایش اعتبار</MenuItem>
-                  <MenuItem value="SUBMIT_COMPANY">ثبت شرکت</MenuItem>
-                  <MenuItem value="PURCHASE_SUBSCRIPTION">خرید اشتراک</MenuItem>
+                  {/*<MenuItem value="TRANSFER_CREDIT">انتقال اعتبار</MenuItem>*/}
+                  <MenuItem value="BUY_SUBSCRIPTION">خرید اشتراک</MenuItem>
                 </Select>
               </FormControl>
               

@@ -1,5 +1,11 @@
 const locale = {
   MESSAGE_MANAGER: "مدیریت پیام‌ها",
+  MESSAGING_HISTORY: "تاریخچه ارسال پیام",
+  NOTIFICATION_ADMIN: "مدیریت اعلان‌ها",
+  NOTIFICATION_CHANNELS: "کانال‌های اعلان",
+  NOTIFICATION_CONFIGS: "پیکربندی اعلان‌ها",
+  NOTIFICATION_CONSTRAINTS: "محدودیت‌های اعلان",
+  INTERNAL_EVENTS: "رویدادهای داخلی",
   BULK_MESSAGING: "ارسال پیام گروهی",
   SUB_BULK_MESSAGING: "بخش ارسال پیام‌های گروهی به کاربران",
   BULK_MESSAGING_COMPOSE: "ارسال جدید",

@@ -5,8 +5,11 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { motion } from 'framer-motion';
+import { alpha, useTheme } from '@mui/material/styles';
+import { formatAmount, toFarsiDigits } from './financeDashboardUtils';
 
-function FinanceDashboardAppHeader({ onRefresh, isRefreshing }) {
+function FinanceDashboardAppHeader({ onRefresh, isRefreshing, appliedFilters, summary }) {
+  const theme = useTheme();
   const today = new Date();
   const formattedDate = new Intl.DateTimeFormat('fa-IR', {
     weekday: 'long',
@@ -33,13 +36,39 @@ function FinanceDashboardAppHeader({ onRefresh, isRefreshing }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <Typography
-              className="font-medium tracking-tight mt-4"
-              color="text.secondary"
-            >
+            <Typography className="font-medium tracking-tight mt-4" color="text.secondary">
               آخرین وضعیت تراکنش‌ها و پرداخت‌های مالی سامانه
             </Typography>
           </motion.div>
+          {summary && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <Box className="flex flex-wrap gap-8 mt-12">
+                <Chip
+                  size="small"
+                  label={`${summary.totalRevenueLabel || 'درآمد کل'}: ${formatAmount(summary.totalRevenue)} ریال`}
+                  sx={{
+                    backgroundColor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.dark,
+                    fontWeight: 600,
+                  }}
+                />
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={`${toFarsiDigits(summary.transactionCount || 0)} تراکنش`}
+                />
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={`${toFarsiDigits(summary.paymentCount || 0)} پرداخت`}
+                />
+              </Box>
+            </motion.div>
+          )}
         </div>
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -47,6 +76,15 @@ function FinanceDashboardAppHeader({ onRefresh, isRefreshing }) {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="flex items-center mt-16 sm:mt-0 gap-12"
         >
+          {appliedFilters?.dateFrom && appliedFilters?.dateTo && (
+            <Chip
+              label={`${appliedFilters.dateFrom} — ${appliedFilters.dateTo}`}
+              variant="outlined"
+              size="small"
+              icon={<FuseSvgIcon size={16}>heroicons-solid:calendar-days</FuseSvgIcon>}
+              sx={{ direction: 'rtl', display: { xs: 'none', md: 'flex' } }}
+            />
+          )}
           <Chip
             label={formattedDate}
             variant="outlined"
@@ -61,9 +99,9 @@ function FinanceDashboardAppHeader({ onRefresh, isRefreshing }) {
               color="primary"
               size="large"
               sx={{
-                backgroundColor: (theme) => theme.palette.action.hover,
+                backgroundColor: (t) => alpha(t.palette.primary.main, 0.08),
                 '&:hover': {
-                  backgroundColor: (theme) => theme.palette.action.selected,
+                  backgroundColor: (t) => alpha(t.palette.primary.main, 0.16),
                 },
               }}
             >

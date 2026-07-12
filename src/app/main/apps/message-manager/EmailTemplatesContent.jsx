@@ -41,25 +41,20 @@ function EmailTemplatesContent() {
   const editorRef = useRef(null);
   
   // Use redux store and API data together
-  const { data: apiTemplates, isLoading, isFetching } = useGetEmailTemplatesQuery({ 
-    pageNumber: 1,
-    pageSize: 50,
-    search: "",
-  }, {
-    // Don't refetch on focus or reconnect to reduce unnecessary loading
+  const { data: apiTemplates, isLoading, isFetching } = useGetEmailTemplatesQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: false,
     refetchOnReconnect: false
   });
   
   const templates = useSelector(
-    (state) => state.messagingApp?.templates?.emailTemplates
+    (state) => state["messagingApp.templates"]?.emailTemplates
   );
   const systemTemplates = useSelector(
-    (state) => state.messagingApp?.templates?.systemEmailTemplates
+    (state) => state["messagingApp.templates"]?.systemEmailTemplates
   );
   const selectedTemplate = useSelector(
-    (state) => state.messagingApp?.templates?.selectedEmailTemplate
+    (state) => state["messagingApp.templates"]?.selectedEmailTemplate
   );
 
   // Use memoized template lists to prevent unnecessary renders
@@ -93,19 +88,22 @@ function EmailTemplatesContent() {
 
   // Update templates in redux store when API data changes
   useEffect(() => {
-    if (apiTemplates?.data) {
-      // Check if we have data to update the store with
-      if (apiTemplates.data.length > 0) {
-        // Update the email templates in the redux store
-        dispatch(setEmailTemplates(apiTemplates.data));
-        
-        // If no template is currently selected, select the first one
-        if (!selectedTemplate && apiTemplates.data[0]) {
-          dispatch(setSelectedEmailTemplate(apiTemplates.data[0]));
-        }
-      }
+    if (!apiTemplates?.data) return;
+
+    const all = apiTemplates.data;
+    dispatch(setEmailTemplates(all));
+
+    if (all.length === 0) return;
+
+    const currentId = selectedTemplate?.id;
+    const stillValid = currentId && all.some((t) => t.id === currentId);
+    if (!stillValid) {
+      const preferred = all.find((t) => t.isSystem) || all[0];
+      dispatch(setSelectedEmailTemplate(preferred));
     }
-  }, [apiTemplates, dispatch, selectedTemplate]);
+    // intentionally only react to API payload changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiTemplates, dispatch]);
 
   const [updateEmailTemplateApi] = useUpdateEmailTemplateMutation();
   const [deleteEmailTemplateApi] = useDeleteEmailTemplateMutation();

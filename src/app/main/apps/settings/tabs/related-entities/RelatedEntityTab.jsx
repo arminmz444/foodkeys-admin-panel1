@@ -12,6 +12,7 @@ import {
 	HiOutlineLink
 } from 'react-icons/hi';
 import CompanyRelatedSection from './CompanyRelatedSection';
+import ServiceRelatedSection from './ServiceRelatedSection';
 import ComingSoonSection from './ComingSoonSection';
 
 // Tab panel component
@@ -172,12 +173,7 @@ function RelatedEntityTab() {
 							<CompanyRelatedSection />
 						</TabPanel>
 						<TabPanel value={activeTab} index={1}>
-							<ComingSoonSection 
-								title="خدمات مرتبط"
-								description="امکان مدیریت خدمات مرتبط به زودی اضافه خواهد شد"
-								icon={<HiOutlineCog size={64} />}
-								colorScheme="indigo"
-							/>
+							<ServiceRelatedSection />
 						</TabPanel>
 						<TabPanel value={activeTab} index={2}>
 							<ComingSoonSection 

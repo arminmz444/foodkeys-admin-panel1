@@ -50,7 +50,7 @@ const VALUE_TYPE_LABELS = {
  * - Beautiful, scalable UI
  * - Add/remove fields dynamically
  */
-function AdditionalInfoField({ name = 'additionalInfo', disabled = false }) {
+function AdditionalInfoField({ name = 'additionalData', disabled = false }) {
 	const { control, setValue, watch } = useFormContext();
 	const additionalInfo = watch(name) || {};
 

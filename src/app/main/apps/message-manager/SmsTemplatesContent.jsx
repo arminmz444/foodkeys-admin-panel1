@@ -32,6 +32,7 @@ import {
   addSmsTemplate,
   updateSmsTemplate,
   deleteSmsTemplate,
+  setSmsTemplates,
 } from "./store/templatesSlice";
 import { 
   useGetSmsTemplatesQuery,
@@ -43,41 +44,44 @@ function SmsTemplatesContent() {
   const dispatch = useDispatch();
   const editorRef = useRef(null);
   
-  // Use redux store and API data together with optimized fetch settings
-  const { data: apiTemplates, isLoading, isFetching } = useGetSmsTemplatesQuery({ 
-    pageNumber: 1,
-    pageSize: 50,
-    search: "",
-  }, {
-    // Don't refetch on focus or reconnect to reduce unnecessary loading
+  const { data: apiTemplates, isLoading, isFetching } = useGetSmsTemplatesQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: false,
     refetchOnReconnect: false
   });
   
   const templates = useSelector(
-    (state) => state.messagingApp.templates.smsTemplates
+    (state) => state["messagingApp.templates"]?.smsTemplates
   );
   const systemTemplates = useSelector(
-    (state) => state.messagingApp.templates.systemSmsTemplates
+    (state) => state["messagingApp.templates"]?.systemSmsTemplates
   );
   const selectedTemplate = useSelector(
-    (state) => state.messagingApp.templates.selectedSmsTemplate
+    (state) => state["messagingApp.templates"]?.selectedSmsTemplate
   );
 
-  // Use memoized template lists to prevent unnecessary renders
   const templateList = useMemo(() => templates || [], [templates]);
   const systemTemplateList = useMemo(() => systemTemplates || [], [systemTemplates]);
 
-  // Alert and confirm dialogs
   const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
-  // Update templates in redux store when API data changes
   useEffect(() => {
-    if (apiTemplates?.data) {
-      // Update redux store with API data if needed
+    if (!apiTemplates?.data) return;
+
+    const all = apiTemplates.data;
+    dispatch(setSmsTemplates(all));
+
+    if (all.length === 0) return;
+
+    const currentId = selectedTemplate?.id;
+    const stillValid = currentId && all.some((t) => t.id === currentId);
+    if (!stillValid) {
+      const preferred = all.find((t) => t.isSystem) || all[0];
+      dispatch(setSelectedSmsTemplate(preferred));
     }
+    // intentionally only react to API payload changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiTemplates, dispatch]);
 
   const [updateSmsTemplateApi] = useUpdateSmsTemplateMutation();

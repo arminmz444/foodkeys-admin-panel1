@@ -1,5 +1,12 @@
 const locale = {
 	APPLICATIONS: 'Applications',
+	MESSAGE_MANAGER: 'Message Templates',
+	MESSAGING_HISTORY: 'Messaging History',
+	NOTIFICATION_ADMIN: 'Notification Admin',
+	NOTIFICATION_CHANNELS: 'Notification Channels',
+	NOTIFICATION_CONFIGS: 'Notification Configs',
+	NOTIFICATION_CONSTRAINTS: 'Notification Constraints',
+	INTERNAL_EVENTS: 'Internal Events',
 	BULK_MESSAGING: 'Bulk Messaging',
 	SUB_BULK_MESSAGING: 'Bulk messaging to users section',
 	BULK_MESSAGING_COMPOSE: 'New Message',

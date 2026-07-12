@@ -145,7 +145,7 @@ function ServiceItem({ service, onRemoveDraft }) {
           <Typography color="text.secondary">آخرین ثبت:</Typography>
           <Typography className="mx-4 truncate">
             {(service.updatedAt &&
-              formatDistanceToNow(new Date(service.updatedAt), { addSuffix: true })) ||
+              formatDistanceToNow(new Date(service.updatedAt), { addSuffix: true })) || service.updatedAtStr ||
               "نامشخص"}
           </Typography>
         </div>

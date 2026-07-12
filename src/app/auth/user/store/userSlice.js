@@ -125,6 +125,9 @@ export const selectUserRole = (state) => selectMostAuthoritativeRole(projectionO
 export const selectIsUserGuest = (state) => {
 	return isGuest(projectionOnName(state?.user?.role || state?.user?.roles));
 };
+export const selectIsUserAdmin = (state) => {
+	return isAdmin(projectionOnName(state?.user?.accesses || state?.user?.userAccesses));
+};
 export const selectUserShortcuts = (state) => getUserShortcutsOrDefault(state?.user);
 export const selectUserSettings = (state) => getUserSettingsOrDefault(state?.user);
 export default userSlice.reducer;
@@ -147,6 +150,8 @@ const selectMostAuthoritativeRole = (roles) => {
 };
 
 const isGuest = (role) => !role || (Array.isArray(role) && role.length === 0);
+
+const isAdmin = (accesses) => accesses && Array.isArray(accesses) && accesses.includes('ADMIN_ACCESS');
 
 const getUserSettingsOrDefault = (user) => {
 	if (!user || !user.data) return DEFAULT_USER_SETTINGS;

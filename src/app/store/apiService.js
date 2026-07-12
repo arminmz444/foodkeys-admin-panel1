@@ -85,7 +85,7 @@ function levenshteinDistance(str1, str2) {
 
 const axiosBaseQuery =
     () =>
-        async ({url, method, data, params}) => {
+        async ({url, method, data, params, responseType}) => {
             try {
                 Axios.defaults.baseURL = API_BASE_URL; // + "/api/v1";
 
@@ -123,7 +123,8 @@ const axiosBaseQuery =
                     method,
                     data,
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    params
+                    params,
+                    ...(responseType ? { responseType } : {}),
                 });
                 //
                 // if (result?.data?.statusCode !== 200) {

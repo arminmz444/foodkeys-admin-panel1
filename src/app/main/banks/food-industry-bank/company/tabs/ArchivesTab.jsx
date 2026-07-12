@@ -257,7 +257,7 @@ function ArchivesTab() {
   const [selectedArchiveId, setSelectedArchiveId] = useState(null);
   const [selectedArchive, setSelectedArchive] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('timeline');
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState('date-desc');
   const [sortMenuAnchor, setSortMenuAnchor] = useState(null);
@@ -597,14 +597,14 @@ function ArchivesTab() {
                 onChange={(e, v) => v && setViewMode(v)}
                 size="small"
               >
-                <ToggleButton value="grid">
-                  <Tooltip title="نمای شبکه‌ای">
-                    <GridViewIcon fontSize="small" />
-                  </Tooltip>
-                </ToggleButton>
                 <ToggleButton value="timeline">
                   <Tooltip title="نمای خط زمانی">
                     <TimelineViewIcon fontSize="small" />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton value="grid">
+                  <Tooltip title="نمای شبکه‌ای">
+                    <GridViewIcon fontSize="small" />
                   </Tooltip>
                 </ToggleButton>
               </ToggleButtonGroup>
@@ -736,7 +736,7 @@ function ArchivesTab() {
                   label="نوع آرشیو"
                   onChange={(e) => setArchiveTaskData((prev) => ({ ...prev, archiveType: e.target.value }))}
                 >
-                  {archiveTypes?.map((type) => (
+                  {archiveTypes?.map((type) => type.value === "MANUAL" && (
                     <MenuItem key={type.value} value={type.value}>
                       {type.label}
                     </MenuItem>
