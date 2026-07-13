@@ -306,6 +306,72 @@ export function getOperationDisplayName(operation) {
     default: return operation;
   }
 }
+export function getAccessName(access) {
+  if (typeof access === 'string') {
+    return access;
+  }
+
+  return access?.name;
+}
+
+export function getRoleName(role) {
+  if (typeof role === 'string') {
+    return role;
+  }
+
+  return role?.name;
+}
+
+export function userHasAccess(userAccessesData, accessName) {
+  if (!Array.isArray(userAccessesData) || !accessName) {
+    return false;
+  }
+
+  return userAccessesData.some((access) => getAccessName(access) === accessName);
+}
+
+export function userHasRole(userRolesData, roleName) {
+  if (!Array.isArray(userRolesData) || !roleName) {
+    return false;
+  }
+
+  return userRolesData.some((role) => getRoleName(role) === roleName);
+}
+
+export function getMatchingAccessIds(userAccessesData, allAccesses) {
+  if (!Array.isArray(userAccessesData) || !Array.isArray(allAccesses)) {
+    return [];
+  }
+
+  const userAccessIds = new Set(
+    userAccessesData
+      .map((access) => (typeof access === 'object' ? access.id : null))
+      .filter(Boolean)
+  );
+  const userAccessNames = new Set(userAccessesData.map(getAccessName).filter(Boolean));
+
+  return allAccesses
+    .filter((access) => userAccessIds.has(access.id) || userAccessNames.has(access.name))
+    .map((access) => access.id);
+}
+
+export function getMatchingRoleIds(userRolesData, allRoles) {
+  if (!Array.isArray(userRolesData) || !Array.isArray(allRoles)) {
+    return [];
+  }
+
+  const userRoleIds = new Set(
+    userRolesData
+      .map((role) => (typeof role === 'object' ? role.id : null))
+      .filter(Boolean)
+  );
+  const userRoleNames = new Set(userRolesData.map(getRoleName).filter(Boolean));
+
+  return allRoles
+    .filter((role) => userRoleIds.has(role.id) || userRoleNames.has(role.name))
+    .map((role) => role.id);
+}
+
 /**
  * Check if an access can be directly assigned to a user
  * (COMMON_CRM_ROLE and BUSINESS_ROLE accesses can only be assigned via roles)

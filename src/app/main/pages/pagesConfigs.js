@@ -4,7 +4,7 @@ import authenticationPagesConfig from './authentication/authenticationPagesConfi
 import comingSoonPagesConfig from './coming-soon/comingSoonPagesConfig';
 import invoicePagesConfig from './invoice/invoicePagesConfig';
 import errorPagesConfig from './error/errorPagesConfig';
-import pricingPagesConfig from './pricing/pricingPagesConfig';
+// import pricingPagesConfig from './pricing/pricingPagesConfig';
 import searchPagesConfig from './search/searchPagesConfig';
 /**
  * The pages routes config.
@@ -16,7 +16,7 @@ const pagesConfigs = [
 	maintenancePageConfig,
 	invoicePagesConfig,
 	activitiesPageConfig,
-	pricingPagesConfig,
+	// pricingPagesConfig,
 	searchPagesConfig
 ];
 export default pagesConfigs;

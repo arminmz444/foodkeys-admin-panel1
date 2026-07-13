@@ -21,7 +21,6 @@ import { LuHeading1 } from 'react-icons/lu';
 import { MdAddLink, MdDriveFileRenameOutline } from 'react-icons/md';
 import { z } from 'zod';
 import FusePageSimple from '@fuse/core/FusePageSimple/index.js';
-import { useUpdateAccountSettingsMutation } from '../SettingsApi';
 
 const defaultValues = {
 	title: '',
@@ -61,7 +60,6 @@ function AboutUsPageTab() {
 	const [colorValue, setColorValue] = useState('');
 
 	// const { data: accountSettings, isError } = useGetAccountSettingsQuery();
-	const [updateAccountSettings] = useUpdateAccountSettingsMutation();
 	const { control, watch, reset, handleSubmit, formState } = useForm({
 		defaultValues,
 		mode: 'all',
@@ -69,15 +67,12 @@ function AboutUsPageTab() {
 	});
 	const images = watch('images');
 	const { isValid, dirtyFields, errors } = formState;
-	// useEffect(() => {
-	// 	reset(accountSettings);
-	// }, [accountSettings, reset]);
 
 	/**
 	 * Form Submit
 	 */
-	function onSubmit(formData) {
-		updateAccountSettings(formData);
+	function onSubmit() {
+		// Persist via website config API when wired
 	}
 
 	return (

@@ -107,6 +107,90 @@ export const isDocumentFile = (contentType) => {
   return info.type === 'document';
 };
 
+const extensionMimeMap = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  txt: 'text/plain',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  ogg: 'video/ogg',
+  ogv: 'video/ogg',
+};
+
+function getFileExtension({ fileExtension, fileName }) {
+  if (fileExtension) {
+    return String(fileExtension).replace('.', '').toLowerCase();
+  }
+
+  if (fileName && fileName.includes('.')) {
+    return fileName.split('.').pop().toLowerCase();
+  }
+
+  return '';
+}
+
+export function resolveGalleryFileContentType({ contentType, fileExtension, fileName }) {
+  const extension = getFileExtension({ fileExtension, fileName });
+  const mappedType = extension ? extensionMimeMap[extension] : null;
+
+  if (!contentType || contentType === 'application/octet-stream') {
+    return mappedType || contentType || 'application/octet-stream';
+  }
+
+  if (contentType.startsWith('image/') && mappedType && !mappedType.startsWith('image/')) {
+    return mappedType;
+  }
+
+  return contentType;
+}
+
+export function isPdfFile(contentType, file = {}) {
+  if (contentType === 'application/pdf') {
+    return true;
+  }
+
+  return getFileExtension(file) === 'pdf';
+}
+
+export function mapGalleryFileFromApi(file, serviceType) {
+  let metadata = {};
+
+  if (file.metadata) {
+    try {
+      metadata = typeof file.metadata === 'string' ? JSON.parse(file.metadata) : file.metadata;
+    } catch (error) {
+      console.error('Error parsing file metadata:', error);
+    }
+  }
+
+  const contentType = resolveGalleryFileContentType({
+    contentType: file.contentType,
+    fileExtension: file.fileExtension,
+    fileName: file.fileName,
+  });
+
+  return {
+    id: file.id,
+    fileName: file.fileName,
+    filePath: file.filePath,
+    contentType,
+    fileSize: file.fileSize,
+    fileExtension: file.fileExtension,
+    metadata,
+    fileServiceType: serviceType,
+  };
+}
+
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; 
 
 export const metadataSchemas = {

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import SubCategoryTable from './SubCategoryTable';
 
 import useThemeMediaQuery from '../../../../@fuse/hooks/useThemeMediaQuery.js';
-import DemoHeader from '../../user-interface/page-layouts/shared-components/DemoHeader.jsx';
+import DemoHeader from '@/app/shared-components/DemoHeader';
 
 /**
  * The SubCategories page.

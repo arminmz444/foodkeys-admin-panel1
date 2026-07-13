@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import grapesjs from 'grapesjs';
+import 'grapesjs/dist/css/grapes.min.css';
 import gjsPresetWebpage from 'grapesjs-preset-webpage';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
 import gjsTailwind from 'grapesjs-tailwind';
@@ -35,7 +36,7 @@ import {
   Devices as DevicesIcon,
   DataObject as DataObjectIcon
 } from '@mui/icons-material';
-import MonacoEditor from '@monaco-editor/react';
+import SimpleCodeEditor from '@/app/shared-components/simple-code-editor/SimpleCodeEditor';
 import { useDispatch, useSelector } from 'react-redux';
 // import { saveTemplate, publishTemplate, getTemplateVersions } from '../../store/miniAppSlice';
 import VariableSelector from './VariableSelector';
@@ -809,16 +810,10 @@ const EnhancedGrapesJSEditor = ({ initialContent = '', onSave, templateId = null
             </Box>
             
             <Box sx={{ flexGrow: 1, mb: 2 }}>
-              <MonacoEditor
-                height="100%"
-                language="javascript"
-                theme="vs-dark"
+              <SimpleCodeEditor
                 value={customCode}
                 onChange={setCustomCode}
-                options={{
-                  minimap: { enabled: false },
-                  automaticLayout: true,
-                }}
+                height="100%"
               />
             </Box>
             

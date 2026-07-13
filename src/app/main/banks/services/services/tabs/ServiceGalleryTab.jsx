@@ -5,28 +5,7 @@ import { Typography, Alert, Box, CircularProgress } from '@mui/material';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import ServiceFileSection from './components/ServiceFileSection';
-
-function mapGalleryFile(file, serviceType) {
-	let metadata = {};
-	if (file.metadata) {
-		try {
-			metadata = typeof file.metadata === 'string' ? JSON.parse(file.metadata) : file.metadata;
-		} catch (e) {
-			console.error('Error parsing file metadata:', e);
-		}
-	}
-
-	return {
-		id: file.id,
-		fileName: file.fileName,
-		filePath: file.filePath,
-		contentType: file.contentType || (file.fileExtension ? `image/${String(file.fileExtension).replace('.', '')}` : ''),
-		fileSize: file.fileSize,
-		fileExtension: file.fileExtension,
-		metadata,
-		fileServiceType: serviceType
-	};
-}
+import { mapGalleryFileFromApi } from 'src/app/main/banks/food-industry-bank/company/tabs/utils/fileUtils';
 
 function ServiceGalleryTab() {
 	const { setValue } = useFormContext();
@@ -52,7 +31,7 @@ function ServiceGalleryTab() {
 						if (!groups[serviceType]) {
 							groups[serviceType] = [];
 						}
-						groups[serviceType].push(mapGalleryFile(file, serviceType));
+						groups[serviceType].push(mapGalleryFileFromApi(file, serviceType));
 						return groups;
 					}, {});
 

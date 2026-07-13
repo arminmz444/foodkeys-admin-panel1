@@ -4,8 +4,7 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 import FormHelperText from '@mui/material/FormHelperText';
 import CustomArrayFieldInput from './CustomArrayFieldInput.jsx';
-import { ContactPhoneModel } from '@/app/main/apps/contacts/models/ContactModel.js';
-// import { ContactPhoneModel } from '../../models/ContactModel';
+import { ContactPhoneModel } from '../../models/ContactModel';
 /**
  * The phone number selector.
  */

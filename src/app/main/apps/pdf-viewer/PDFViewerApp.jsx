@@ -1,128 +1,54 @@
-import { useEffect, useState } from "react";
-import {
-  Worker,
-  Icon,
-  MinimalButton,
-  Position,
-  Tooltip,
-  Viewer,
-} from "@react-pdf-viewer/core";
-import { bookmarkPlugin } from "@react-pdf-viewer/bookmark";
-import { toolbarPlugin } from "@react-pdf-viewer/toolbar";
+import { Box, Button, Typography } from '@mui/material';
+import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 
-import "@react-pdf-viewer/bookmark/lib/styles/index.css";
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/toolbar/lib/styles/index.css";
-
-/**
- * The PDFViewer app.
- */
-function PDFViewerApp({ fileUrl = "https://react-pdf-viewer.dev/assets/pdf-open-parameters.pdf" }) {
-  const TOOLTIP_OFFSET = { left: 8, top: 0 };
-
-  const [sidebarOpened, setSidebarOpened] = useState(false);
-  const bookmarkPluginInstance = bookmarkPlugin();
-  const toolbarPluginInstance = toolbarPlugin();
-
-  const { Toolbar } = toolbarPluginInstance;
-  const { Bookmarks } = bookmarkPluginInstance;
-//   useEffect(() => {
-//     fetch("https://react-pdf-viewer.dev/assets/pdf-open-parameters.pdf", {
-//       method: "GET",
-//       headers: { "Content-Type": "application/json" },
-//     })
-//       .then((response) => response.blob())
-//       .then((blob) => {
-//         const url = URL.createObjectURL(blob);
-//         setPdfUrl(url);
-//       });
-//   }, []);
+function PDFViewerApp({
+  fileUrl = 'https://react-pdf-viewer.dev/assets/pdf-open-parameters.pdf',
+}) {
+  const handleDownload = () => {
+    window.open(fileUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
-    // <div>
-    //     {pdfUrl && (
-    //         <Worker workerUrl={`https://unpkg.com/pdfjs-dist@2.9.359/build/pdf.worker.min.js`}>
-    //             <Viewer fileUrl={pdfUrl} />
-    //         </Worker>
-    //     )}
-    // </div>
-
-    <div
-      style={{
-        border: "1px solid rgba(0, 0, 0, 0.3)",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
+    <Box
+      sx={{
+        border: '1px solid rgba(0, 0, 0, 0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: '70vh',
       }}
     >
-      <div
-        style={{
-          alignItems: "center",
-          backgroundColor: "#eeeeee",
-          borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
-          display: "flex",
-          padding: "4px",
+      <Box
+        sx={{
+          alignItems: 'center',
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          px: 2,
+          py: 1,
         }}
       >
-        <div style={{ marginRight: "0.25rem" }}>
-          <Tooltip
-            position={Position.BottomLeft}
-            target={
-              <MinimalButton
-                ariaLabel="Toggle the bookmarks"
-                isSelected={sidebarOpened}
-                onClick={() => setSidebarOpened((opened) => !opened)}
-              >
-                <Icon size={16}>
-                  <rect
-                    x="0.5"
-                    y="0.497"
-                    width="22"
-                    height="22"
-                    rx="1"
-                    ry="1"
-                  />
-                  <line x1="7.5" y1="0.497" x2="7.5" y2="22.497" />
-                </Icon>
-              </MinimalButton>
-            }
-            content={() => "Toggle the bookmarks"}
-            offset={TOOLTIP_OFFSET}
-          />
-        </div>
-        <Toolbar />
-      </div>
-      <div
-        style={{
-          display: "flex",
-          flex: 1,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            borderRight: sidebarOpened
-              ? "1px solid rgba(0, 0, 0, 0.3)"
-              : "none",
-            overflow: "auto",
-            transition: "width 400ms ease-in-out",
-            width: sidebarOpened ? "30%" : "0%",
-          }}
+        <Typography variant="body2" color="text.secondary">
+          پیش‌نمایش PDF
+        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<FuseSvgIcon size={18}>heroicons-outline:download</FuseSvgIcon>}
+          onClick={handleDownload}
         >
-          <Bookmarks />
-        </div>
-        <div
-          style={{
-            flex: 1,
-          }}
-        >
-          <Viewer
-            fileUrl={fileUrl}
-            plugins={[bookmarkPluginInstance, toolbarPluginInstance]}
-          />
-        </div>
-      </div>
-    </div>
+          دانلود
+        </Button>
+      </Box>
+      <Box sx={{ flex: 1, minHeight: 0 }}>
+        <iframe
+          src={`${fileUrl}#toolbar=1`}
+          title="PDF preview"
+          style={{ border: 0, width: '100%', height: '100%', minHeight: '65vh' }}
+        />
+      </Box>
+    </Box>
   );
 }
 

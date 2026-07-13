@@ -4,7 +4,7 @@ import GlobalStyles from '@mui/material/GlobalStyles';
 import { styled } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import RequestsTable from './RequestsTable.jsx';
-import DemoHeader from '@/app/main/user-interface/page-layouts/shared-components/DemoHeader.jsx';
+import DemoHeader from '@/app/shared-components/DemoHeader';
 
 /**
  * The companies page.

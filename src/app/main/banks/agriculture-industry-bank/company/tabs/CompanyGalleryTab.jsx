@@ -6,6 +6,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import FileSection from './components/FileSection';
 import CompanyLogoUpload from '@/app/shared-components/company-logo-upload/CompanyLogoUpload';
+import { mapGalleryFileFromApi } from './utils/fileUtils';
 
 function CompanyGalleryTab() {
   const methods = useFormContext();
@@ -35,28 +36,8 @@ function CompanyGalleryTab() {
             if (!groups[serviceType]) {
               groups[serviceType] = [];
             }
-            
-            let metadata = {};
-            if (file.metadata) {
-              try {
-                metadata = typeof file.metadata === 'string' 
-                  ? JSON.parse(file.metadata) 
-                  : file.metadata;
-              } catch (e) {
-                console.error('Error parsing file metadata:', e);
-              }
-            }
-            
-            groups[serviceType].push({
-              id: file.id,
-              fileName: file.fileName,
-              filePath: file.filePath,
-              contentType: file.contentType || `image/${file.fileExtension.substring(1)}`,
-              fileSize: file.fileSize,
-              metadata,
-              fileServiceType: serviceType,
-            });
-            
+
+            groups[serviceType].push(mapGalleryFileFromApi(file, serviceType));
             return groups;
           }, {});
           

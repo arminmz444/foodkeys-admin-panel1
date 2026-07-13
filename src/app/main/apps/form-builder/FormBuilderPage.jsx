@@ -4,9 +4,7 @@ import { useState, useRef } from "react"
 import { useForm, FormProvider, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import ReactFlow, { Background, Controls, MiniMap, addEdge, useNodesState, useEdgesState, Panel } from "reactflow"
-import "reactflow/dist/style.css"
-import Editor from "@monaco-editor/react"
+import SimpleCodeEditor from "@/app/shared-components/simple-code-editor/SimpleCodeEditor"
 import {
   Typography,
   Button,
@@ -34,6 +32,7 @@ import {
   CardContent,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Snackbar,
@@ -142,33 +141,6 @@ const initialWorkflow = {
   actions: [],
 }
 
-// Initial nodes for ReactFlow
-const initialNodes = [
-  {
-    id: "1",
-    type: "input",
-    data: {
-      label: "Form Submission",
-      type: "trigger",
-      config: {},
-    },
-    position: { x: 250, y: 5 },
-    style: {
-      background: "#f5f5f5",
-      border: "1px solid #d1d1d1",
-      borderRadius: "8px",
-      padding: "10px",
-      width: 180,
-    },
-  },
-]
-
-// Initial edges for ReactFlow
-const initialEdges = []
-
-// Custom node types
-const nodeTypes = {}
-
 // Standalone FormBuilderPage component without Redux dependencies
 function FormBuilderPage() {
   const [form, setForm] = useState(initialForm)
@@ -184,8 +156,6 @@ function FormBuilderPage() {
     "// Write your code here\n\nfunction processFormData(data) {\n  console.log('Processing form data:', data);\n  return data;\n}\n",
   )
   const [workflow, setWorkflow] = useState(initialWorkflow)
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [selectedAction, setSelectedAction] = useState(null)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
@@ -193,9 +163,7 @@ function FormBuilderPage() {
   const [actionConfigOpen, setActionConfigOpen] = useState(false)
   const [currentActionType, setCurrentActionType] = useState(null)
   const [currentActionConfig, setCurrentActionConfig] = useState({})
-  const [currentNodeId, setCurrentNodeId] = useState(null)
-  const reactFlowWrapper = useRef(null)
-  const [reactFlowInstance, setReactFlowInstance] = useState(null)
+  const [currentActionId, setCurrentActionId] = useState(null)
 
   // Email action form
   const emailFormMethods = useForm({
@@ -582,57 +550,7 @@ function FormBuilderPage() {
     }
 
     setWorkflow(updatedWorkflow)
-
-    // Find the action type details
-    const actionTypeDetails = actionTypes.find((a) => a.id === actionType) || {
-      label: actionType,
-      icon: <CodeIcon />,
-      color: "#757575",
-    }
-
-    // Add a new node to the ReactFlow diagram
-    const newNode = {
-      id: String(nodes.length + 1),
-      data: {
-        label: actionTypeDetails.label,
-        type: actionType,
-        config: newAction.config,
-        icon: actionTypeDetails.icon,
-      },
-      position: {
-        x: 250,
-        y: nodes.length * 120 + 100,
-      },
-      style: {
-        background: "#ffffff",
-        border: `2px solid ${actionTypeDetails.color}`,
-        borderRadius: "8px",
-        padding: "10px",
-        width: 180,
-      },
-    }
-
-    setNodes([...nodes, newNode])
-
-    // Add an edge connecting the last node to the new node
-    if (nodes.length > 0) {
-      const newEdge = {
-        id: `e${nodes.length}-${nodes.length + 1}`,
-        source: String(nodes.length),
-        target: String(nodes.length + 1),
-        animated: true,
-        style: { stroke: "#888" },
-      }
-
-      setEdges([...edges, newEdge])
-    }
-
     setSelectedAction(newAction.id)
-  }
-
-  // Handle edge connections in the workflow diagram
-  const onConnect = (params) => {
-    setEdges((eds) => addEdge(params, eds))
   }
 
   // Handle running JavaScript code
@@ -678,19 +596,18 @@ function FormBuilderPage() {
     setSnackbarOpen(true)
   }
 
-  // Handle node click in ReactFlow
-  const onNodeClick = (event, node) => {
-    // Find the action in the workflow
-    const actionIndex = workflow.actions.findIndex((a, index) => index === Number.parseInt(node.id) - 1)
+  const handleActionClick = (action) => {
+    const actionIndex = workflow.actions.findIndex((item) => item.id === action.id)
 
-    if (actionIndex !== -1) {
-      const action = workflow.actions[actionIndex]
-      setCurrentActionType(action.type)
-      setCurrentActionConfig(action.config || {})
-      setCurrentNodeId(node.id)
+    if (actionIndex === -1) {
+      return
+    }
 
-      // Set form values based on action type
-      if (action.type === "email") {
+    setCurrentActionId(action.id)
+    setCurrentActionType(action.type)
+    setCurrentActionConfig(action.config || {})
+
+    if (action.type === "email") {
         emailFormMethods.reset(
           action.config || {
             subject: "",
@@ -738,21 +655,19 @@ function FormBuilderPage() {
         return
       }
 
-      setActionConfigOpen(true)
-    }
+    setActionConfigOpen(true)
   }
 
   // Handle saving action configuration
   const handleSaveActionConfig = (data) => {
-    if (!currentNodeId || !currentActionType) return
+    if (!currentActionId || !currentActionType) return
 
-    const actionIndex = Number.parseInt(currentNodeId) - 1
-    if (actionIndex <= 0 || actionIndex > workflow.actions.length) return
+    const actionIndex = workflow.actions.findIndex((action) => action.id === currentActionId)
+    if (actionIndex === -1) return
 
-    // Update the action config
     const updatedActions = [...workflow.actions]
-    updatedActions[actionIndex - 1] = {
-      ...updatedActions[actionIndex - 1],
+    updatedActions[actionIndex] = {
+      ...updatedActions[actionIndex],
       config: data,
     }
 
@@ -761,21 +676,6 @@ function FormBuilderPage() {
       actions: updatedActions,
     })
 
-    // Update the node data
-    const updatedNodes = nodes.map((node) => {
-      if (node.id === currentNodeId) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            config: data,
-          },
-        }
-      }
-      return node
-    })
-
-    setNodes(updatedNodes)
     setActionConfigOpen(false)
 
     setSnackbarMessage("Action configuration saved!")
@@ -1414,37 +1314,33 @@ function FormBuilderPage() {
           </div>
         </div>
 
-        <div className="flex-grow border rounded-lg" style={{ minHeight: "500px" }} ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={onNodeClick}
-            onInit={setReactFlowInstance}
-            nodeTypes={nodeTypes}
-            fitView
-          >
-            <Controls />
-            <MiniMap />
-            <Background variant="dots" gap={12} size={1} />
-            <Panel position="top-right">
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                onClick={() => {
-                  if (reactFlowInstance) {
-                    reactFlowInstance.fitView()
-                  }
-                }}
-              >
-                Fit View
-              </Button>
-            </Panel>
-          </ReactFlow>
-        </div>
+        <Box className="border rounded-lg p-4" sx={{ minHeight: 500 }}>
+          <Typography variant="subtitle2" className="mb-2">
+            Form Submission
+          </Typography>
+          <List dense>
+            {workflow.actions.map((action, index) => {
+              const actionTypeDetails = actionTypes.find((item) => item.id === action.type)
+              return (
+                <ListItem key={action.id} disablePadding>
+                  <ListItemButton onClick={() => handleActionClick(action)}>
+                    <ListItemIcon>{actionTypeDetails?.icon || <CodeIcon />}</ListItemIcon>
+                    <ListItemText
+                      primary={`${index + 1}. ${actionTypeDetails?.label || action.type}`}
+                      secondary="Click to configure"
+                    />
+                    <Chip size="small" label={action.type} />
+                  </ListItemButton>
+                </ListItem>
+              )
+            })}
+            {workflow.actions.length === 0 && (
+              <Typography variant="body2" color="text.secondary" className="py-8 text-center">
+                No actions added yet
+              </Typography>
+            )}
+          </List>
+        </Box>
       </div>
     )
   }
@@ -2181,19 +2077,7 @@ function FormBuilderPage() {
             </Tabs>
           </div>
 
-          <div style={{ height: 400, border: "1px solid #ddd" }}>
-            <Editor
-              height="400px"
-              language={scriptType === "js" ? "javascript" : "groovy"}
-              value={scriptCode}
-              onChange={(value) => setScriptCode(value || "")}
-              theme="vs-light"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-              }}
-            />
-          </div>
+          <SimpleCodeEditor value={scriptCode} onChange={setScriptCode} height={400} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCodeDialogOpen(false)}>Cancel</Button>

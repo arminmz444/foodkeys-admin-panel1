@@ -108,52 +108,9 @@ function UserMenu() {
 							</ListItemIcon>
 							<ListItemText primary="ورود" />
 						</MenuItem>
-						<MenuItem
-							component={Link}
-							to="/sign-up"
-							role="button"
-						>
-							<ListItemIcon className="min-w-40">
-								<FuseSvgIcon>heroicons-outline:user-add </FuseSvgIcon>
-							</ListItemIcon>
-							<ListItemText primary="ثبت‌نام" />
-						</MenuItem>
 					</>
 				) : (
 					<>
-						<MenuItem
-							component={Link}
-							to="/apps/profile"
-							onClick={userMenuClose}
-							role="button"
-						>
-							<ListItemIcon className="min-w-40">
-								<FuseSvgIcon>heroicons-outline:user-circle</FuseSvgIcon>
-							</ListItemIcon>
-							<ListItemText primary="حساب کاربری" />
-						</MenuItem>
-						<MenuItem
-							component={Link}
-							to="/apps/mailbox"
-							onClick={userMenuClose}
-							role="button"
-						>
-							<ListItemIcon className="min-w-40">
-								<FuseSvgIcon>heroicons-outline:mail-open</FuseSvgIcon>
-							</ListItemIcon>
-							<ListItemText primary="پیام‌ها" />
-						</MenuItem>
-						<MenuItem
-							component={Link}
-							to="/apps/mailbox"
-							onClick={userMenuClose}
-							role="button"
-						>
-							<ListItemIcon className="min-w-40">
-								<FuseSvgIcon>heroicons-outline:mail-open</FuseSvgIcon>
-							</ListItemIcon>
-							<ListItemText primary="درخواست‌ها" />
-						</MenuItem>
 						<MenuItem
 							onClick={() => {
 								signOut();

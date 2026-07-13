@@ -174,12 +174,7 @@ const ContactPageTab = lazy(() => import("./tabs/ContactPageTab"));
 const SettingsApp = lazy(() => import("./SettingsApp"));
 const CustomSettingsApp = lazy(() => import("./CustomSettingsApp"));
 const AboutUsPageTab = lazy(() => import("./tabs/AboutUsPageTab"));
-const AccountTab = lazy(() => import("./tabs/AccountTab"));
-const SecurityTab = lazy(() => import("./tabs/SecurityTab"));
-const PlanBillingTab = lazy(() => import("./tabs/PlanBillingTab"));
-const NotificationsTab = lazy(() => import("./tabs/NotificationsTab"));
 const FileServiceTypeEntityTab = lazy(() => import("./tabs/file-service-type-entity/FileServiceTypeEntityTab"));
-const TeamTab = lazy(() => import("./tabs/TeamTab"));
 const FavoritesTab = lazy(() => import("./tabs/favorites/FavoritesTab"));
 const RelatedEntityTab = lazy(() => import("./tabs/related-entities/RelatedEntityTab"));
 
@@ -272,29 +267,9 @@ const SettingsAppConfig = {
 					element: <DiscountTab />,
 				},
 				{
-					path: "account",
-					element: <AccountTab />,
-				},
-				{
-					path: "security",
-					element: <SecurityTab />,
-				},
-				{
-					path: "plan-billing",
-					element: <PlanBillingTab />,
-				},
-				{
-					path: "notifications",
-					element: <NotificationsTab />,
-				},
-				{
 					path: "file-service-type-entity",
 					element: <FileServiceTypeEntityTab />,
 				},
-{
-				path: "team",
-				element: <TeamTab />,
-			},
 			// Dynamic Configs Routes
 			{
 				path: "dynamic-configs",

@@ -34,7 +34,13 @@ import {
   useUpdateUserAccessesMutation,
   groupAccessesByEntity,
   sortAccessesByScope,
-  filterDirectlyAssignableAccesses, getOperationDisplayName, useUpdateUserRolesMutation
+  filterDirectlyAssignableAccesses,
+  getOperationDisplayName,
+  getMatchingAccessIds,
+  getMatchingRoleIds,
+  userHasAccess,
+  userHasRole,
+  useUpdateUserRolesMutation
 } from "./UserApi";
 
 function TabPanel({ children, value, index, ...other }) {
@@ -89,20 +95,13 @@ function RoleAccessManagement({ userId }) {
   // Set selected roles and accesses when data is loaded
   useEffect(() => {
     if (userRoles?.data) {
-      const roleIds = rolesList?.data?.filter(role => 
-        // userRoles.data.includes(role.name)
-          userRoles?.data?.some(r => r.name === role.name)
-      ).map(role => role.id);
-      setSelectedRoles(roleIds || []);
+      setSelectedRoles(getMatchingRoleIds(userRoles.data, rolesList?.data || []));
     }
   }, [userRoles, rolesList]);
 
   useEffect(() => {
     if (userAccesses?.data) {
-      const accessIds = accessesList?.data?.filter(access => 
-        userAccesses.data.includes(access.name)
-      ).map(access => access.id);
-      setSelectedAccesses(accessIds || []);
+      setSelectedAccesses(getMatchingAccessIds(userAccesses.data, accessesList?.data || []));
     }
   }, [userAccesses, accessesList]);
 
@@ -258,9 +257,8 @@ function RoleAccessManagement({ userId }) {
               
               <List sx={{ width: '100%' }}>
                 {filteredRoles.map((role) => {
-                  console.log(role)
                   const isSelected = selectedRoles.indexOf(role.id) !== -1;
-                  const isAssigned = userRoles.data?.includes(role.name);
+                  const isAssigned = userHasRole(userRoles.data, role.name);
                   const roleTypeLabel = role.roleType === 'SYSTEM' ? 'سیستمی' : 
                                        role.roleType === 'BUSINESS' ? 'کسب‌وکار' : 'سفارشی';
                   
@@ -379,7 +377,7 @@ function RoleAccessManagement({ userId }) {
                             <List dense>
                               {sortedAccesses.map((access) => {
                                 const isSelected = selectedAccesses.indexOf(access.id) !== -1;
-                                const isAssigned = userAccesses.data?.includes(access.name);
+                                const isAssigned = userHasAccess(userAccesses.data, access.name);
                                 const scopeLabel = access.scope === 'ALL' ? 'همه' : 
                                                   access.scope === 'OWN' ? 'خود' : 
                                                   access.scope === 'ONLINE_POLICY_CHECK' ? 'شرطی' : access.scope;

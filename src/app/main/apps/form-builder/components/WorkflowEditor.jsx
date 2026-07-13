@@ -1,9 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import ReactFlow, { Background, Controls, MiniMap, addEdge, useNodesState, useEdgesState } from "reactflow"
-import "reactflow/dist/style.css"
-import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material"
+import {
+  Box,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+} from "@mui/material"
 import {
   Email as EmailIcon,
   Sms as SmsIcon,
@@ -13,9 +26,8 @@ import {
   DataObject as DataObjectIcon,
   Close as CloseIcon,
 } from "@mui/icons-material"
-import Editor from "@monaco-editor/react"
+import SimpleCodeEditor from "@/app/shared-components/simple-code-editor/SimpleCodeEditor"
 
-// Action types
 const actionTypes = [
   { id: "email", label: "Send Email", icon: <EmailIcon /> },
   { id: "sms", label: "Send SMS", icon: <SmsIcon /> },
@@ -26,31 +38,14 @@ const actionTypes = [
   { id: "data_transform", label: "Data Transform", icon: <DataObjectIcon /> },
 ]
 
-// Initial nodes
-const initialNodes = [
-  {
-    id: "1",
-    type: "input",
-    data: {
-      label: "Form Submission",
-      type: "trigger",
-      config: {},
-    },
-    position: { x: 250, y: 5 },
-  },
-]
-
 function WorkflowEditor({ workflow = { trigger: { type: "form_submission", config: {} }, actions: [] }, onChange }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  const [selectedAction, setSelectedAction] = useState(null)
+  const [selectedActionId, setSelectedActionId] = useState(null)
   const [codeDialogOpen, setCodeDialogOpen] = useState(false)
   const [scriptType, setScriptType] = useState("js")
   const [scriptCode, setScriptCode] = useState(
     '// Write your code here\n\nfunction processData(data) {\n  console.log("Processing data:", data);\n  return data;\n}\n',
   )
 
-  // Handle adding a new action
   const handleAddAction = (actionType) => {
     const newAction = {
       id: `action_${Date.now()}`,
@@ -58,7 +53,6 @@ function WorkflowEditor({ workflow = { trigger: { type: "form_submission", confi
       config: {},
     }
 
-    // For script types, add default code
     if (actionType === "js_script") {
       newAction.config.code =
         "// Write your JavaScript code here\n\nfunction processData(data) {\n  console.log('Processing data:', data);\n  return data;\n}\n"
@@ -67,109 +61,54 @@ function WorkflowEditor({ workflow = { trigger: { type: "form_submission", confi
         '// Write your Groovy code here\n\ndef processData(data) {\n  println "Processing data: ${data}"\n  return data\n}\n'
     }
 
-    // Add the action to the workflow
     const updatedWorkflow = {
       ...workflow,
-      actions: [...(workflow?.actions || [])],
+      actions: [...(workflow?.actions || []), newAction],
     }
 
-    // Add the new action
-    updatedWorkflow.actions.push(newAction)
+    onChange?.(updatedWorkflow)
+    setSelectedActionId(newAction.id)
 
-    if (onChange) {
-      onChange(updatedWorkflow)
-    }
-
-    // Add a new node to the ReactFlow diagram
-    const newNode = {
-      id: String(nodes.length + 1),
-      data: {
-        label: actionTypes.find((a) => a.id === actionType)?.label || actionType,
-        type: actionType,
-        config: newAction.config,
-      },
-      position: {
-        x: 250,
-        y: nodes.length * 100 + 100,
-      },
-    }
-
-    setNodes([...nodes, newNode])
-
-    // Add an edge connecting the last node to the new node
-    if (nodes.length > 0) {
-      const newEdge = {
-        id: `e${nodes.length}-${nodes.length + 1}`,
-        source: String(nodes.length),
-        target: String(nodes.length + 1),
-        animated: true,
-      }
-
-      setEdges([...edges, newEdge])
-    }
-
-    setSelectedAction(newAction.id)
-  }
-
-  // Handle edge connections in the workflow diagram
-  const onConnect = (params) => {
-    setEdges((eds) => addEdge(params, eds))
-  }
-
-  // Handle opening the code editor
-  const handleEditCode = (nodeId, type) => {
-    const node = nodes.find((n) => n.id === nodeId)
-    if (node) {
-      setScriptType(type === "js_script" ? "js" : "groovy")
-      setScriptCode(node.data.config.code || "")
-      setSelectedAction(nodeId)
+    if (actionType === "js_script" || actionType === "groovy_script") {
+      setScriptType(actionType === "js_script" ? "js" : "groovy")
+      setScriptCode(newAction.config.code)
       setCodeDialogOpen(true)
     }
   }
 
-  // Handle saving code changes
+  const handleActionClick = (action) => {
+    setSelectedActionId(action.id)
+
+    if (action.type === "js_script" || action.type === "groovy_script") {
+      setScriptType(action.type === "js_script" ? "js" : "groovy")
+      setScriptCode(action.config?.code || "")
+      setCodeDialogOpen(true)
+    }
+  }
+
   const handleSaveCode = () => {
-    // Update the node with the new code
-    const updatedNodes = nodes.map((node) => {
-      if (node.id === selectedAction) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
+    if (!selectedActionId || !workflow?.actions) {
+      setCodeDialogOpen(false)
+      return
+    }
+
+    const updatedActions = workflow.actions.map((action) =>
+      action.id === selectedActionId
+        ? {
+            ...action,
             config: {
-              ...node.data.config,
+              ...action.config,
               code: scriptCode,
             },
-          },
-        }
-      }
-      return node
+          }
+        : action,
+    )
+
+    onChange?.({
+      ...workflow,
+      actions: updatedActions,
     })
-
-    setNodes(updatedNodes)
     setCodeDialogOpen(false)
-
-    // Update the workflow if it exists and has actions
-    if (workflow && workflow.actions) {
-      const actionIndex = workflow.actions.findIndex((a) => a.id === selectedAction)
-      if (actionIndex !== -1) {
-        const updatedActions = [...workflow.actions]
-        updatedActions[actionIndex] = {
-          ...updatedActions[actionIndex],
-          config: {
-            ...updatedActions[actionIndex].config,
-            code: scriptCode,
-          },
-        }
-
-        if (onChange) {
-          onChange({
-            ...workflow,
-            actions: updatedActions,
-          })
-        }
-      }
-    }
   }
 
   return (
@@ -193,27 +132,34 @@ function WorkflowEditor({ workflow = { trigger: { type: "form_submission", confi
         </div>
       </Box>
 
-      <Box style={{ height: 400 }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={(event, node) => {
-            if (node.data.type === "js_script" || node.data.type === "groovy_script") {
-              handleEditCode(node.id, node.data.type)
-            }
-          }}
-          fitView
-        >
-          <Controls />
-          <MiniMap />
-          <Background />
-        </ReactFlow>
+      <Box className="border rounded-lg p-4" sx={{ minHeight: 280 }}>
+        <Typography variant="subtitle2" className="mb-2">
+          Form Submission
+        </Typography>
+        <List dense>
+          {(workflow?.actions || []).map((action, index) => {
+            const actionMeta = actionTypes.find((item) => item.id === action.type)
+            return (
+              <ListItem key={action.id} disablePadding>
+                <ListItemButton selected={selectedActionId === action.id} onClick={() => handleActionClick(action)}>
+                  <ListItemIcon>{actionMeta?.icon || <CodeIcon />}</ListItemIcon>
+                  <ListItemText
+                    primary={`${index + 1}. ${actionMeta?.label || action.type}`}
+                    secondary={action.type.includes("script") ? "Click to edit script" : "Configured action"}
+                  />
+                  <Chip size="small" label={action.type} />
+                </ListItemButton>
+              </ListItem>
+            )
+          })}
+          {!workflow?.actions?.length && (
+            <Typography variant="body2" color="text.secondary" className="py-8 text-center">
+              No actions added yet
+            </Typography>
+          )}
+        </List>
       </Box>
 
-      {/* Code Editor Dialog */}
       <Dialog open={codeDialogOpen} onClose={() => setCodeDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           {scriptType === "js" ? "JavaScript" : "Groovy"} Editor
@@ -226,19 +172,7 @@ function WorkflowEditor({ workflow = { trigger: { type: "form_submission", confi
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          <div style={{ height: 400, border: "1px solid #ddd" }}>
-            <Editor
-              height="400px"
-              language={scriptType === "js" ? "javascript" : "groovy"}
-              value={scriptCode}
-              onChange={(value) => setScriptCode(value || "")}
-              theme="vs-light"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-              }}
-            />
-          </div>
+          <SimpleCodeEditor value={scriptCode} onChange={setScriptCode} height={400} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCodeDialogOpen(false)}>Cancel</Button>
@@ -252,4 +186,3 @@ function WorkflowEditor({ workflow = { trigger: { type: "form_submission", confi
 }
 
 export default WorkflowEditor
-

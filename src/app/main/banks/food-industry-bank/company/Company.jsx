@@ -5,28 +5,31 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { Link, Navigate, Outlet, useParams } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import _ from "@lodash";
 import { FormProvider, useForm } from "react-hook-form";
 import useThemeMediaQuery from "@fuse/hooks/useThemeMediaQuery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import CompanyHeader from "./CompanyHeader";
-import BasicInfoTab from "./tabs/BasicInfoTab";
-import ProductsAndServicesTab from "./tabs/ProductsAndServicesTab.jsx";
-import CompanyGalleryTab from "./tabs/CompanyGalleryTab";
 import { useGetFoodIndustryCompanyDetailsQuery } from "../FoodIndustryBankApi";
 import CompanyModel from "./models/CompanyModel";
-import HistoryTab from "@/app/main/banks/food-industry-bank/company/tabs/HistoryTab";
-import ContactInfoTab from "@/app/main/banks/food-industry-bank/company/tabs/ContactInfoTab";
-import ManagementDescTab from "@/app/main/banks/food-industry-bank/company/tabs/ManagementDescTab";
-import RegistrarTab from "@/app/main/banks/food-industry-bank/company/tabs/RegistrarTab.jsx";
-import MapTab from "./tabs/MapTab";
-import SettingsTab from "./tabs/additional-settings-tab/SettingsTab";
-import ArchivesTab from "./tabs/ArchivesTab";
-import VersionHistoryTab from "./tabs/VersionHistoryTab";
-import RelatedCompaniesTab from "src/app/shared-components/related-companies/RelatedCompaniesTab";
+
+const BasicInfoTab = lazy(() => import("./tabs/BasicInfoTab"));
+const ProductsAndServicesTab = lazy(() => import("./tabs/ProductsAndServicesTab.jsx"));
+const CompanyGalleryTab = lazy(() => import("./tabs/CompanyGalleryTab"));
+const HistoryTab = lazy(() => import("./tabs/HistoryTab"));
+const ContactInfoTab = lazy(() => import("./tabs/ContactInfoTab"));
+const ManagementDescTab = lazy(() => import("./tabs/ManagementDescTab"));
+const RegistrarTab = lazy(() => import("./tabs/RegistrarTab.jsx"));
+const MapTab = lazy(() => import("./tabs/MapTab"));
+const ArchivesTab = lazy(() => import("./tabs/ArchivesTab"));
+const VersionHistoryTab = lazy(() => import("./tabs/VersionHistoryTab"));
+const RelatedCompaniesTab = lazy(() =>
+	import("src/app/shared-components/related-companies/RelatedCompaniesTab")
+);
+
 /**
  * Form Validation Schema
  */
@@ -167,73 +170,25 @@ function Company() {
               <Tab className="h-64" label="توضیحات مدیریت" />
               <Tab className="h-64" label="مکان روی نقشه" />
               <Tab className="h-64" label="اطلاعات بیشتر" />
-              {/*<Tab className="h-64" label="تنظیمات" />*/}
               <Tab className="h-64" label="آرشیوها" /> 
               <Tab className="h-64" label="تاریخچه نسخه‌ها" /> 
               <Tab className="h-64" label="شرکت‌های مرتبط" /> 
-              {/* <Tab */}
-              {/*	className="h-64" */}
-              {/*	label="Product Images" */}
-              {/* /> */}
-              {/* <Tab */}
-              {/*	className="h-64" */}
-              {/*	label="Pricing" */}
-              {/* /> */}
-              {/* <Tab */}
-              {/*	className="h-64" */}
-              {/*	label="Inventory" */}
-              {/* /> */}
-              {/* <Tab */}
-              {/*	className="h-64" */}
-              {/*	label="Shipping" */}
-              {/* /> */}
             </Tabs>
-            <div
-              className="p-16 sm:p-24 w-full"
-            >
-            {tabValue === 0 && <BasicInfoTab />}
-              {tabValue === 1 && <HistoryTab />}
-              {tabValue === 2 && <ProductsAndServicesTab />}
-              {tabValue === 3 && <ContactInfoTab />}
-              {tabValue === 4 && <CompanyGalleryTab />}
-              {tabValue === 5 && <ManagementDescTab />}
-              {tabValue === 6 && <MapTab tabValue={tabValue} myIndex={6} />}
-              {tabValue === 7 && <RegistrarTab />}
-              {/*{tabValue === 8 && <SettingsTab />}*/}
-              {tabValue === 8 && <ArchivesTab />}
-              {tabValue === 9 && <VersionHistoryTab />}
-              {tabValue === 10 && <RelatedCompaniesTab bankType="food" />}
+            <div className="p-16 sm:p-24 w-full">
+              <Suspense fallback={<FuseLoading />}>
+                {tabValue === 0 && <BasicInfoTab />}
+                {tabValue === 1 && <HistoryTab />}
+                {tabValue === 2 && <ProductsAndServicesTab />}
+                {tabValue === 3 && <ContactInfoTab />}
+                {tabValue === 4 && <CompanyGalleryTab />}
+                {tabValue === 5 && <ManagementDescTab />}
+                {tabValue === 6 && <MapTab tabValue={tabValue} myIndex={6} />}
+                {tabValue === 7 && <RegistrarTab />}
+                {tabValue === 8 && <ArchivesTab />}
+                {tabValue === 9 && <VersionHistoryTab />}
+                {tabValue === 10 && <RelatedCompaniesTab bankType="food" />}
+              </Suspense>
             </div>
-
-              {/* <div className={tabValue !== 1 ? "hidden" : ""}>
-                <HistoryTab />
-              </div>
-
-              <div className={tabValue !== 2 ? "hidden" : ""}>
-                <ProductsAndServicesTab />
-              </div>
-
-              <div className={tabValue !== 3 ? "hidden" : ""}>
-                <ContactInfoTab />
-              </div>
-
-              <div className={tabValue !== 4 ? "hidden" : ""}>
-                <CompanyGalleryTab />
-              </div>
-
-              <div className={tabValue !== 5 ? "hidden" : ""}>
-                <ManagementDescTab />
-              </div>
-              <div className={tabValue !== 6 ? "hidden" : ""}>
-                <CompanyMainImagesTab />
-              </div>
-              <div className={tabValue !== 7 ? "hidden" : ""}>
-                <MapTab tabValue={tabValue} myIndex={7} />
-              </div>
-              <div className={tabValue !== 8 ? "hidden" : ""}>
-                <RegistrarTab />
-              </div> */}
-            {/* </div> */}
           </>
         }
         scroll={isMobile ? "normal" : "content"}

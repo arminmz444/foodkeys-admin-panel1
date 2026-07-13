@@ -204,12 +204,11 @@ function UserForm() {
       reset(UserModel({}));
     } else if (user) {
       const roleIds = userRoles?.data
-        ? userRoles.data
+        ? userRoles.data.map((role) => (typeof role === 'string' ? role : role.name))
         : user?.userRoles?.map((role) => role.name) || [];
 
-      // Extract the access IDs from userAccesses data
       const accessIds = userAccesses?.data
-        ? userAccesses.data.map((access) => access)
+        ? userAccesses.data.map((access) => (typeof access === 'string' ? access : access.name))
         : user?.userAccesses?.map((access) => access.name) || [];
 
       const formattedUser = {

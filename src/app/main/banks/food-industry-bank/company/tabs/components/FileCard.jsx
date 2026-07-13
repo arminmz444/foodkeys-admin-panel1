@@ -12,9 +12,32 @@ import {
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import { motion } from 'framer-motion';
 import { getServerFile } from '@/utils/string-utils';
-import { isImageFile, isVideoFile, isDocumentFile } from '../utils/fileUtils';
+import { isImageFile, isVideoFile, isDocumentFile, isPdfFile } from '../utils/fileUtils';
 import FilePreview from './FilePreview';
 import EditMetadataForm from './edit-metadata-form/EditMetadataForm';
+
+async function downloadGalleryFile(url, fileName) {
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Download error:', error);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
 
 function FileCard({ 
   file, 
@@ -35,6 +58,12 @@ function FileCard({
   const handleEdit = (e) => {
     e.stopPropagation();
     setIsEditOpen(true);
+  };
+
+  const handleDownload = (e) => {
+    e.stopPropagation();
+    if (file.uploadPending || file.uploadError) return;
+    downloadGalleryFile(getFileUrl(), file.fileName);
   };
 
   const handlePreview = () => {
@@ -98,7 +127,7 @@ function FileCard({
       return (
         <Box className="h-40 bg-blue-50 flex flex-col items-center justify-center p-4">
           <FuseSvgIcon className="text-blue-500 mb-2" size={32}>
-            {file.contentType === 'application/pdf' 
+            {isPdfFile(file.contentType, file)
               ? 'heroicons-outline:document-text' 
               : 'heroicons-outline:document'}
           </FuseSvgIcon>
@@ -132,6 +161,17 @@ function FileCard({
           
           {/* Action Buttons */}
           <Box className="absolute top-2 right-2 flex">
+            {(isPdfFile(file.contentType, file) || isDocumentFile(file.contentType)) && (
+              <Tooltip title="دانلود فایل">
+                <IconButton
+                  size="small"
+                  onClick={handleDownload}
+                  className="bg-white bg-opacity-80 hover:bg-opacity-100 ml-1"
+                >
+                  <FuseSvgIcon size={18}>heroicons-outline:download</FuseSvgIcon>
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="ویرایش اطلاعات">
               <IconButton 
                 size="small"

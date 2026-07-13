@@ -38,17 +38,17 @@ function UserView() {
     skip: !userId,
   });
   
-  const { data: roles = [], isLoading: isLoadingRoles } = useGetUserRolesQuery(userId, {
+  const { data: roles = [] } = useGetUserRolesQuery(userId, {
     skip: !userId,
   });
   
-  const { data: accesses = [], isLoading: isLoadingAccesses } = useGetUserAccessesQuery(userId, {
+  const { data: accesses = [] } = useGetUserAccessesQuery(userId, {
     skip: !userId,
   });
   
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   
-  const isLoading = isLoadingUser || isLoadingRoles || isLoadingAccesses || isDeleting;
+  const isLoading = isLoadingUser || isDeleting;
 
   const handleDeleteUser = async () => {
     if (!user) {
