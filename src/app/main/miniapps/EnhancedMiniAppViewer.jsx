@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Card from '@mui/material/Card';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -9,79 +8,48 @@ import Typography from '@mui/material/Typography';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import FuseHighlight from '@fuse/core/FuseHighlight';
 import FuseLoading from '@fuse/core/FuseLoading';
-import MiniAppFrame from './MiniAppFrame'; // Modified version of your DemoFrame component
+import MiniAppFrame from './MiniAppFrame';
 
 /**
  * EnhancedMiniAppViewer component
  * Displays a MiniApp with tabs for preview, HTML, CSS, and JS
+ * Expects miniapp data via props (no backend API calls)
  */
 function EnhancedMiniAppViewer(props) {
-  const { miniappId, companyId, className } = props;
+  const { miniapp: miniappProp, className } = props;
   const [currentTab, setCurrentTab] = useState(0);
-  const [miniapp, setMiniapp] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [miniapp, setMiniapp] = useState(miniappProp || null);
+  const [loading, setLoading] = useState(!miniappProp);
   const [error, setError] = useState(null);
   const [content, setContent] = useState({ html: '', css: '', js: '' });
 
-  // Fetch miniapp data
   useEffect(() => {
-    const fetchMiniapp = async () => {
-      try {
-        setLoading(true);
-        let response;
-        
-        if (miniappId) {
-          response = await axios.get(`/api/miniapps/${miniappId}`);
-        } else if (companyId) {
-          const companiesResponse = await axios.get(`/api/miniapps/company/${companyId}`);
-          if (companiesResponse.data && companiesResponse.data.length > 0) {
-            response = { data: companiesResponse.data[0] };
-          } else {
-            throw new Error('No miniapp found for this company');
-          }
-        } else {
-          throw new Error('Either miniappId or companyId must be provided');
-        }
-        
-        if (response && response.data) {
-          setMiniapp(response.data);
-          
-          // Fetch content if available
-          if (response.data.content) {
-            setContent({
-              html: response.data.content.html || '',
-              css: response.data.content.css || '',
-              js: response.data.content.js || ''
-            });
-          } else {
-            // Try to fetch rendered content
-            const contentResponse = await axios.get(`/api/miniapps/${response.data.id}/content`);
-            if (contentResponse.data) {
-              setContent(contentResponse.data);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching miniapp:', err);
-        setError(err.message || 'Failed to load miniapp');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchMiniapp();
-  }, [miniappId, companyId]);
+    if (!miniappProp) {
+      setMiniapp(null);
+      setContent({ html: '', css: '', js: '' });
+      setError('MiniApp data must be provided');
+      setLoading(false);
+      return;
+    }
+
+    setMiniapp(miniappProp);
+    setContent({
+      html: miniappProp.content?.html || '',
+      css: miniappProp.content?.css || '',
+      js: miniappProp.content?.js || ''
+    });
+    setError(null);
+    setLoading(false);
+  }, [miniappProp]);
 
   const handleChange = (event, value) => {
     setCurrentTab(value);
   };
 
-  // Show loading state
   if (loading) {
     return <FuseLoading />;
   }
 
-  // Show error state
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -102,14 +70,12 @@ function EnhancedMiniAppViewer(props) {
     );
   }
 
-  // Render content based on integration type
   const getIframeContent = () => {
     if (miniapp.integrationType === 'iframe') {
-      // For iframe integration, use the server-rendered URL
-      return `${miniapp.id}/render?companyId=${companyId || ''}`;
-    } else {
-      // For inline preview, we need to create an HTML document with the content
-      return `
+      return miniapp.iframeSrc || miniapp.renderUrl || '';
+    }
+
+    return `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -127,7 +93,6 @@ function EnhancedMiniAppViewer(props) {
 </body>
 </html>
       `;
-    }
   };
 
   return (
@@ -182,8 +147,8 @@ function EnhancedMiniAppViewer(props) {
               minHeight: 400,
             }}
           >
-            {miniapp.integrationType === 'iframe' ? (
-              <MiniAppFrame name={miniapp.name} src={`/api/miniapps/${getIframeContent()}`} />
+            {miniapp.integrationType === 'iframe' && getIframeContent() ? (
+              <MiniAppFrame name={miniapp.name} src={getIframeContent()} />
             ) : (
               <MiniAppFrame name={miniapp.name}>
                 <div dangerouslySetInnerHTML={{ __html: content.html }} />

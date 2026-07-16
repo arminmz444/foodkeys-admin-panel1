@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
-import axios from 'axios';
 import FusePageCarded from '@fuse/core/FusePageCarded';
 import FuseLoading from '@fuse/core/FuseLoading';
 import EnhancedMiniAppViewer from './EnhancedMiniAppViewer';
@@ -178,39 +177,23 @@ function MiniAppPage(props) {
   const resolvedMiniappId = miniappId || params.miniappId;
   const resolvedCompanyId = companyId || params.companyId;
   
-  // Fetch miniapp data
+  // Use local mock data only (no /api/miniapps backend calls)
   useEffect(() => {
-    const fetchMiniapp = async () => {
-      try {
-        setLoading(true);
-        
-        let response;
-        if (resolvedMiniappId) {
-          response = await axios.get(`/api/miniapps/${resolvedMiniappId}`);
-        } else if (resolvedCompanyId) {
-          const companiesResponse = await axios.get(`/api/miniapps/company/${resolvedCompanyId}`);
-          if (companiesResponse.data && companiesResponse.data.length > 0) {
-            response = { data: companiesResponse.data[0] };
-          } else {
-            throw new Error('No miniapp found for this company');
-          }
-        } else {
-          throw new Error('Either miniappId or companyId must be provided');
-        }
-        
-        if (response && response.data) {
-          setMiniapp(response.data);
-        }
-      } catch (err) {
-        console.error('Error fetching miniapp:', err);
-        setError(err.message || 'Failed to load miniapp');
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    setError(null);
+
+    const mockById = {
+      [String(iframeMiniApp.id)]: iframeMiniApp,
+      [String(moduleFederationMiniApp.id)]: moduleFederationMiniApp
     };
-    
-    // fetchMiniapp();
-    setMiniapps(iframeMiniApp);
+
+    const resolved =
+      mockById[String(resolvedMiniappId)] ||
+      (resolvedCompanyId ? iframeMiniApp : null) ||
+      iframeMiniApp;
+
+    setMiniapp(resolved);
+    setLoading(false);
   }, [resolvedMiniappId, resolvedCompanyId]);
   
   // Create page header
@@ -259,20 +242,20 @@ function MiniAppPage(props) {
     // Determine which component to use based on integration type
     if (miniapp.integrationType === 'moduleFederation') {
       return (
-        <FederationMiniAppLoader 
-          miniappId={miniapp.id} 
-          companyId={resolvedCompanyId || miniapp.targetCompanyId} 
-        />
-      );
-    } else {
-      return (
-        <EnhancedMiniAppViewer 
-          miniappId={miniapp.id} 
-          companyId={resolvedCompanyId || miniapp.targetCompanyId} 
-          className="m-24"
+        <FederationMiniAppLoader
+          miniapp={miniapp}
+          companyId={resolvedCompanyId || miniapp.targetCompanyId}
         />
       );
     }
+
+    return (
+      <EnhancedMiniAppViewer
+        miniapp={miniapp}
+        companyId={resolvedCompanyId || miniapp.targetCompanyId}
+        className="m-24"
+      />
+    );
   };
   
   return (

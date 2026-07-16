@@ -5,7 +5,6 @@ import { setMetaCache } from './metaCache';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const API_STATIC_FILES_BASE_URL = import.meta.env.VITE_API_STATIC_FILES_BASE_URL;
-export const API_WS_BASE_URL = import.meta.env.VITE_API_WS_BASE_URL;
 
 // Toast deduplication: Track recent toasts to prevent duplicates
 const toastHistory = [];

@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
-import axios from 'axios';
 import FuseLoading from '@fuse/core/FuseLoading';
 
 // Create a MiniApp lazy loader
@@ -15,42 +14,20 @@ const createMiniAppLoader = (miniappId, companyId) => {
 
 /**
  * MiniApp Routes Manager
- * Dynamically creates routes for MiniApps
+ * Manages routes for MiniApps (local registration only — no backend API)
  */
 class MiniAppRoutesManager {
   constructor() {
     this.routes = [];
-    this.initialized = false;
-  }
-
-  async initialize() {
-    if (this.initialized) return;
-    
-    try {
-      // Fetch all published MiniApps
-      const response = await axios.get('/api/miniapps?status=published');
-      
-      if (response.status === 200 && response.data) {
-        // Create routes for each MiniApp
-        response.data.forEach(miniapp => {
-          if (miniapp.routePath && miniapp.clientType === 'ADMIN_PANEL_CLIENT') {
-            this.addMiniAppRoute(miniapp);
-          }
-        });
-      }
-      
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize MiniApp routes:', error);
-    }
+    this.initialized = true;
   }
 
   addMiniAppRoute(miniapp) {
     // Remove leading slash if present
-    const path = miniapp.routePath.startsWith('/') 
-      ? miniapp.routePath.substring(1) 
+    const path = miniapp.routePath.startsWith('/')
+      ? miniapp.routePath.substring(1)
       : miniapp.routePath;
-    
+
     // Create a route configuration
     const route = {
       path,
@@ -61,10 +38,10 @@ class MiniAppRoutesManager {
         companyId: miniapp.targetCompanyId
       }
     };
-    
+
     // Add to routes array
     this.routes.push(route);
-    
+
     return route;
   }
 
@@ -94,9 +71,6 @@ export const registerMiniApp = (miniappData) => miniAppRoutesManager.registerMin
 export const unregisterMiniApp = (miniappId) => miniAppRoutesManager.unregisterMiniApp(miniappId);
 export const getMiniAppRoutes = () => miniAppRoutesManager.getRoutes();
 
-// Initialize routes on load
-miniAppRoutesManager.initialize();
-
 /**
  * MiniAppRoutes component
  * Dynamically renders routes for MiniApps
@@ -106,7 +80,7 @@ function MiniAppRoutes() {
     ...getMiniAppRoutes(),
     { path: '*', element: <Navigate to="/404" /> }
   ]);
-  
+
   return routes;
 }
 

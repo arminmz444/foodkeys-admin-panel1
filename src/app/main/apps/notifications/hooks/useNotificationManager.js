@@ -2,11 +2,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch } from 'app/store/hooks';
 import useJwtAuth from '@/app/auth/services/jwt/useJwtAuth.jsx';
 import NotificationApi from '../NotificationApi';
-import {
-	connectAdminNotificationWebSocket,
-	disconnectAdminNotificationWebSocket,
-	isAdminNotificationWebSocketActive
-} from '../services/notificationWebSocket';
 import showNotificationToast from '../utils/showNotificationToast.jsx';
 import {
 	getLastSeenAt,
@@ -19,8 +14,7 @@ import {
 	hydrateNotificationCache,
 	processIncomingNotifications,
 	resetNotificationsState,
-	setUnreadCount,
-	setWsConnected
+	setUnreadCount
 } from '../models/notificationSlice';
 
 function useNotificationManager() {
@@ -98,7 +92,6 @@ function useNotificationManager() {
 	useEffect(() => {
 		if (!isAuthenticated) {
 			dispatch(resetNotificationsState());
-			disconnectAdminNotificationWebSocket();
 			knownIdsRef.current = new Set();
 			return undefined;
 		}
@@ -111,19 +104,8 @@ function useNotificationManager() {
 
 		const intervalId = window.setInterval(pollUpdates, POLL_INTERVAL_MS);
 
-		connectAdminNotificationWebSocket((notification) => {
-			handleIncomingNotifications([notification]);
-		});
-
-		const wsStatusInterval = window.setInterval(() => {
-			dispatch(setWsConnected(isAdminNotificationWebSocketActive()));
-		}, 1000);
-
 		return () => {
 			window.clearInterval(intervalId);
-			window.clearInterval(wsStatusInterval);
-			disconnectAdminNotificationWebSocket();
-			dispatch(setWsConnected(false));
 		};
 	}, [dispatch, handleIncomingNotifications, isAuthenticated, pollUpdates, refreshUnreadCount]);
 

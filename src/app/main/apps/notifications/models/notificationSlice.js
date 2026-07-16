@@ -13,7 +13,6 @@ const initialState = {
 	unreadCount: 0,
 	previewItems: loadNotificationCache(),
 	hasPendingUpdates: false,
-	wsConnected: false,
 	knownIds: loadNotificationCache().map((item) => item.id)
 };
 
@@ -28,9 +27,6 @@ export const notificationsSlice = createSlice({
 		},
 		setUnreadCount: (state, action) => {
 			state.unreadCount = action.payload ?? 0;
-		},
-		setWsConnected: (state, action) => {
-			state.wsConnected = action.payload;
 		},
 		setHasPendingUpdates: (state, action) => {
 			state.hasPendingUpdates = action.payload;
@@ -81,7 +77,6 @@ export const notificationsSlice = createSlice({
 export const {
 	hydrateNotificationCache,
 	setUnreadCount,
-	setWsConnected,
 	setHasPendingUpdates,
 	clearPendingUpdates,
 	markPreviewNotificationAsRead,
@@ -92,6 +87,5 @@ export const {
 export const selectUnreadCount = (state) => state?.notifications?.unreadCount ?? 0;
 export const selectPreviewNotifications = (state) => state?.notifications?.previewItems ?? [];
 export const selectHasPendingUpdates = (state) => state?.notifications?.hasPendingUpdates ?? false;
-export const selectWsConnected = (state) => state?.notifications?.wsConnected ?? false;
 
 export default notificationsSlice.reducer;
