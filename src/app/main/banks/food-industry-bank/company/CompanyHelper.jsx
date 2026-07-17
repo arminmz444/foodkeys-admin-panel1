@@ -16,6 +16,8 @@ export const prepareCompanyDataForSubmission = (formData) => {
       ...(preparedData.companyGalleryContact || []),
       ...(preparedData.companyGalleryCatalog || []),
       ...(preparedData.companyGallerySlider || []),
+      ...(preparedData.companyGalleryVideo || []),
+      ...(preparedData.companyGalleryGif || []),
     ]
     .map(file => {
       // Each file needs to have its metadata converted to a string for the API
@@ -50,6 +52,8 @@ export const prepareCompanyDataForSubmission = (formData) => {
     delete preparedData.companyGalleryContact;
     delete preparedData.companyGalleryCatalog;
     delete preparedData.companyGallerySlider;
+    delete preparedData.companyGalleryVideo;
+    delete preparedData.companyGalleryGif;
     
     return preparedData;
   };

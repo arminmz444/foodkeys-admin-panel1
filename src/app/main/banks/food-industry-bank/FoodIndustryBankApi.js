@@ -607,6 +607,8 @@ const FoodIndustryBankApi = api
     processFileCategory(galleryFiles, data.companyGalleryContact, "COMPANY_GALLERY_CONTACT");
     processFileCategory(galleryFiles, data.companyGalleryCatalog, "COMPANY_GALLERY_CATALOG");
     processFileCategory(galleryFiles, data.companyGallerySlider, "COMPANY_GALLERY_SLIDER");
+    processFileCategory(galleryFiles, data.companyGalleryVideo, "COMPANY_GALLERY_VIDEO");
+    processFileCategory(galleryFiles, data.companyGalleryGif, "COMPANY_GALLERY_GIF");
     
     return galleryFiles;
   }
