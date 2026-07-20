@@ -16,6 +16,7 @@ module.exports = {
       ping: "ping 1s cubic-bezier(0, 0, 0.2, 1) infinite",
       pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       bounce: "bounce 1s infinite",
+      heartbeat: "heartbeat 1.4s ease-in-out infinite",
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
     },
@@ -1038,6 +1039,23 @@ module.exports = {
         "50%": {
           transform: "none",
           animationTimingFunction: "cubic-bezier(0,0,0.2,1)",
+        },
+      },
+      heartbeat: {
+        "0%, 100%": {
+          transform: "scale(1)",
+        },
+        "14%": {
+          transform: "scale(1.12)",
+        },
+        "28%": {
+          transform: "scale(1)",
+        },
+        "42%": {
+          transform: "scale(1.12)",
+        },
+        "70%": {
+          transform: "scale(1)",
         },
       },
     },

@@ -108,22 +108,56 @@ const tableIcons = {
 	),
 };
 
-const defaultTransformColumnFilters = (columnFilters) => {
+const defaultTransformColumnFilters = (columnFilters, context = {}) => {
+	const { columnFilterFns = {} } = context;
+
 	return columnFilters.map(filter => {
 		const { id, value } = filter;
+		const filterMode = columnFilterFns[id];
+
+		if (filterMode === "empty") {
+			return `${id}:IS_EMPTY`;
+		}
+
+		if (filterMode === "notEmpty") {
+			return `${id}:IS_NOT_EMPTY`;
+		}
+
+		if (value == null || value === "") {
+			return null;
+		}
+
 		if (Array.isArray(value)) {
-			if (value.length === 2 && typeof value[0] === 'number') {
-				return `${id}:BETWEEN:${value[0]},${value[1]}`;
-			} else {
-				return `${id}:IN:${value.join(',')}`;
+			const normalizedValues = value.filter(
+				(item) => item != null && item !== ""
+			);
+
+			if (!normalizedValues.length) {
+				return null;
 			}
-		} else if (typeof value === 'boolean') {
+
+			if (
+				filterMode === "between" ||
+				filterMode === "betweenInclusive" ||
+				filterMode === "inNumberRange" ||
+				(normalizedValues.length === 2 && typeof normalizedValues[0] === "number")
+			) {
+				return `${id}:BETWEEN:${normalizedValues[0]},${normalizedValues[1] ?? ""}`;
+			}
+
+			return `${id}:IN:${normalizedValues.join(',')}`;
+		}
+
+		if (typeof value === 'boolean') {
 			return `${id}:EQUALS:${value}`;
-		} else if (value && value.includes('%')) {
+		}
+
+		if (value && value.includes('%')) {
 			return `${id}:LIKE:${value}`;
 		}
+
 		return `${id}:EQUALS:${value}`;
-	});
+	}).filter(Boolean);
 };
 
 function GenericCrudTable(props) {
@@ -165,6 +199,7 @@ function GenericCrudTable(props) {
 	const dispatch = useDispatch();
 
 	const [columnFilters, setColumnFilters] = useState([]);
+	const [columnFilterFns, setColumnFilterFns] = useState({});
 	const [globalFilter, setGlobalFilter] = useState("");
 	const [sorting, setSorting] = useState([]);
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -175,8 +210,8 @@ function GenericCrudTable(props) {
 	// Transform column filters using custom transformer or default
 	const transformedFilters = useMemo(() => {
 		const transformer = transformColumnFilters || defaultTransformColumnFilters;
-		return transformer(columnFilters);
-	}, [columnFilters, transformColumnFilters]);
+		return transformer(columnFilters, { columnFilterFns });
+	}, [columnFilters, columnFilterFns, transformColumnFilters]);
 	// const handleGlobalFilterChange = useCallback(
 	// 	(val) => setGlobalFilter(val),
 	// 	[]
@@ -708,6 +743,7 @@ function GenericCrudTable(props) {
 				manualSorting: true,
 				manualPagination: true,
 				onColumnFiltersChange: setColumnFilters,
+				onColumnFilterFnsChange: setColumnFilterFns,
 				onGlobalFilterChange: setGlobalFilter,
 				onShowGlobalFilterChange: setShowGlobalFilter,
 				onSortingChange: setSorting,
@@ -790,6 +826,7 @@ function GenericCrudTable(props) {
 					showProgressBars: isFetchingData,
 					showLoadingOverlay: isFetchingData,
 					columnFilters,
+					columnFilterFns,
 					globalFilter,
 					sorting,
 					showGlobalFilter,
