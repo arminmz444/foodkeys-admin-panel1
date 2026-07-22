@@ -30,6 +30,12 @@ const VersionHistoryTab = lazy(() => import("./tabs/VersionHistoryTab"));
 const RelatedCompaniesTab = lazy(() =>
 	import("src/app/shared-components/related-companies/RelatedCompaniesTab")
 );
+const AnnouncementsTab = lazy(() =>
+	import("src/app/shared-components/announcements/AnnouncementsTab")
+);
+const AdvertisementsTab = lazy(() =>
+	import("src/app/shared-components/advertisements/AdvertisementsTab")
+);
 
 /**
  * Form Validation Schema
@@ -175,6 +181,10 @@ function Company() {
               <Tab className="h-64" label="آرشیوها" /> 
               <Tab className="h-64" label="تاریخچه نسخه‌ها" /> 
               <Tab className="h-64" label="شرکت‌های مرتبط" /> 
+              <Tab className="h-64" label="شرکت‌های رقیب" /> 
+              <Tab className="h-64" label="شرکت‌های زیرمجموعه" /> 
+              <Tab className="h-64" label="اعلان‌ها" /> 
+              <Tab className="h-64" label="تبلیغات" /> 
             </Tabs>
             <div className="p-16 sm:p-24 w-full">
               <Suspense fallback={<FuseLoading />}>
@@ -189,7 +199,11 @@ function Company() {
                 {tabValue === 8 && <SettingsTab />}
                 {tabValue === 9 && <ArchivesTab />}
                 {tabValue === 10 && <VersionHistoryTab />}
-                {tabValue === 11 && <RelatedCompaniesTab bankType="agriculture" />}
+                {tabValue === 11 && <RelatedCompaniesTab bankType="agriculture" relationType="related" />}
+                {tabValue === 12 && <RelatedCompaniesTab bankType="agriculture" relationType="rival" />}
+                {tabValue === 13 && <RelatedCompaniesTab bankType="agriculture" relationType="sub-company" />}
+                {tabValue === 14 && <AnnouncementsTab name="additionalInfo.announcements" />}
+                {tabValue === 15 && <AdvertisementsTab name="additionalInfo.advertisements" />}
               </Suspense>
             </div>
           </>

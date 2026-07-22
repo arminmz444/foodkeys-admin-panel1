@@ -10,8 +10,8 @@ import {
 	Box,
 	Paper,
 	IconButton,
-	TextField,
-	Divider
+	Divider,
+	TextField
 } from "@mui/material";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import CustomSelect from "app/shared-components/custom-select/CustomSelect.jsx";
@@ -20,6 +20,7 @@ import FileUpload from "@mui/icons-material/FileUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRef, useState } from "react";
 import AdditionalInfoField from "src/app/shared-components/AdditionalInfoField/AdditionalInfoField";
+import WatermarkField from "src/app/shared-components/watermark/WatermarkField";
 
 function RegistrarTab() {
 	const methods = useFormContext();
@@ -157,35 +158,67 @@ function RegistrarTab() {
 					)}
 				/>
 			</div>
+
+			<Typography
+				variant="subtitle1"
+				color="textPrimary"
+				className="mt-16 mb-8 sm:mx-4"
+			>
+				امتیاز کاربران
+			</Typography>
+
+			<div className="flex flex-col sm:flex-row">
+				<Controller
+					name="likes"
+					control={control}
+					render={({ field: { onChange, value, ...field } }) => (
+						<TextField
+							{...field}
+							value={value ?? 0}
+							onChange={(e) => {
+								const next = e.target.value === '' ? 0 : Number(e.target.value);
+								onChange(Number.isNaN(next) ? 0 : Math.max(0, next));
+							}}
+							type="number"
+							label="لایک"
+							variant="outlined"
+							fullWidth
+							className="mt-8 mb-16 w-full sm:w-1/2 sm:pr-2"
+							error={!!errors.likes}
+							helperText={errors?.likes?.message || "تعداد لایک‌ها"}
+							inputProps={{ min: 0, step: 1 }}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="dislikes"
+					control={control}
+					render={({ field: { onChange, value, ...field } }) => (
+						<TextField
+							{...field}
+							value={value ?? 0}
+							onChange={(e) => {
+								const next = e.target.value === '' ? 0 : Number(e.target.value);
+								onChange(Number.isNaN(next) ? 0 : Math.max(0, next));
+							}}
+							type="number"
+							label="دیسلایک"
+							variant="outlined"
+							fullWidth
+							className="mt-8 ms-8 mb-16 w-full sm:w-1/2 sm:pl-2"
+							error={!!errors.dislikes}
+							helperText={errors?.dislikes?.message || "تعداد دیسلایک‌ها"}
+							inputProps={{ min: 0, step: 1 }}
+						/>
+					)}
+				/>
+			</div>
 			
 			{/* واترمارک (Watermark) Section */}
-			{/*<Typography*/}
-			{/*	variant="subtitle1"*/}
-			{/*	color="textPrimary"*/}
-			{/*	className="mt-24 mb-8 sm:mx-4"*/}
-			{/*>*/}
-			{/*	واترمارک*/}
-			{/*</Typography>*/}
-			
-			{/*<Controller*/}
-			{/*	name="watermark"*/}
-			{/*	control={control}*/}
-			{/*	defaultValue=""*/}
-			{/*	render={({ field }) => (*/}
-			{/*		<TextField*/}
-			{/*			{...field}*/}
-			{/*			className="mt-8 mb-16 sm:mx-4"*/}
-			{/*			label="متن واترمارک"*/}
-			{/*			placeholder="متن واترمارک را وارد کنید"*/}
-			{/*			id="watermark"*/}
-			{/*			variant="outlined"*/}
-			{/*			fullWidth*/}
-			{/*			error={!!errors.watermark}*/}
-			{/*			helperText={errors?.watermark?.message || "متن واترمارکی که بر روی تصاویر نمایش داده می‌شود"}*/}
-			{/*		/>*/}
-			{/*	)}*/}
-			{/*/>*/}
-			
+			<Divider className="my-32" />
+			<WatermarkField name="additionalInfo.watermark" />
+
 			{/* صفحه اختصاصی (Private Page) Section */}
 			<Typography
 				variant="subtitle1"

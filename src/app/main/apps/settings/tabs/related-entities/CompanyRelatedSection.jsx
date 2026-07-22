@@ -563,7 +563,7 @@ function CompanyRelatedSection() {
 		isFetching: isRelatedFetching,
 		refetch: refetchRelated
 	} = useGetRelatedCompaniesEnrichedQuery(
-		sourceCompany?.id,
+		{ companyId: sourceCompany?.id, relationType: 'related' },
 		{ skip: !sourceCompany?.id }
 	);
 

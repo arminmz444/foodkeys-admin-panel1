@@ -49,6 +49,53 @@ import {
 	useLazySearchCompaniesForRelatedQuery
 } from '../../main/apps/settings/tabs/related-entities/store/relatedEntityApi';
 
+// Labels/config for each relation type so the same component can render
+// related, rival and sub-company management tabs.
+const RELATION_CONFIG = {
+	related: {
+		title: 'شرکت‌های مرتبط',
+		subtitle: (name) => `مدیریت شرکت‌های مرتبط با "${name}"`,
+		count: (n) => `${n} شرکت مرتبط`,
+		addButton: 'افزودن شرکت مرتبط',
+		addFirst: 'افزودن اولین شرکت مرتبط',
+		empty: 'هنوز شرکت مرتبطی اضافه نشده است',
+		dialogTitle: 'افزودن شرکت مرتبط',
+		removed: 'شرکت از لیست مرتبط حذف شد',
+		removeError: 'خطا در حذف از لیست مرتبط',
+		addedTpl: (n) => `${n} شرکت به لیست مرتبط اضافه شد`,
+		addError: 'خطا در افزودن به لیست مرتبط',
+		removeTooltip: 'حذف از لیست مرتبط'
+	},
+	rival: {
+		title: 'شرکت‌های رقیب',
+		subtitle: (name) => `مدیریت شرکت‌های رقیب با "${name}"`,
+		count: (n) => `${n} شرکت رقیب`,
+		addButton: 'افزودن شرکت رقیب',
+		addFirst: 'افزودن اولین شرکت رقیب',
+		empty: 'هنوز شرکت رقیبی اضافه نشده است',
+		dialogTitle: 'افزودن شرکت رقیب',
+		removed: 'شرکت از لیست رقبا حذف شد',
+		removeError: 'خطا در حذف از لیست رقبا',
+		addedTpl: (n) => `${n} شرکت به لیست رقبا اضافه شد`,
+		addError: 'خطا در افزودن به لیست رقبا',
+		removeTooltip: 'حذف از لیست رقبا'
+	},
+	'sub-company': {
+		title: 'شرکت‌های زیرمجموعه',
+		subtitle: (name) => `مدیریت شرکت‌های زیرمجموعه "${name}"`,
+		count: (n) => `${n} شرکت زیرمجموعه`,
+		addButton: 'افزودن شرکت زیرمجموعه',
+		addFirst: 'افزودن اولین شرکت زیرمجموعه',
+		empty: 'هنوز شرکت زیرمجموعه‌ای اضافه نشده است',
+		dialogTitle: 'افزودن شرکت زیرمجموعه',
+		removed: 'شرکت از لیست زیرمجموعه‌ها حذف شد',
+		removeError: 'خطا در حذف از لیست زیرمجموعه‌ها',
+		addedTpl: (n) => `${n} شرکت به لیست زیرمجموعه‌ها اضافه شد`,
+		addError: 'خطا در افزودن به لیست زیرمجموعه‌ها',
+		removeTooltip: 'حذف از لیست زیرمجموعه‌ها'
+	}
+};
+
 // Related Company Card Component
 function RelatedCompanyCard({ company, onRemove, isRemoving, index, bankType }) {
 	const logoUrl = company.logo ? getServerFile(company.logo) : null;
@@ -217,7 +264,9 @@ function AddCompaniesDialog({
 	onClose, 
 	sourceCompanyId,
 	existingRelatedIds,
-	onAddSuccess 
+	onAddSuccess,
+	relationType = 'related',
+	labels = RELATION_CONFIG.related
 }) {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [selectedCompanies, setSelectedCompanies] = useState([]);
@@ -306,10 +355,11 @@ function AddCompaniesDialog({
 		try {
 			await addRelatedCompanies({
 				companyId: sourceCompanyId,
-				relatedCompanyIds: selectedCompanies.map(c => c.id)
+				relatedCompanyIds: selectedCompanies.map(c => c.id),
+				relationType
 			}).unwrap();
 			
-			enqueueSnackbar(`${selectedCompanies.length} شرکت به لیست مرتبط اضافه شد`, {
+			enqueueSnackbar(labels.addedTpl(selectedCompanies.length), {
 				variant: 'success'
 			});
 			
@@ -319,7 +369,7 @@ function AddCompaniesDialog({
 			onAddSuccess?.();
 			onClose();
 		} catch (error) {
-			enqueueSnackbar('خطا در افزودن به لیست مرتبط', {
+			enqueueSnackbar(labels.addError, {
 				variant: 'error'
 			});
 		}
@@ -354,8 +404,8 @@ function AddCompaniesDialog({
 							<HiOutlinePlus size={24} className="text-indigo-500" />
 						</div>
 						<div>
-							<Typography variant="h6" className="font-semibold">افزودن شرکت مرتبط</Typography>
-							<Typography variant="caption" sx={{ color: 'text.secondary' }}>شرکت‌های مرتبط را جستجو و انتخاب کنید</Typography>
+							<Typography variant="h6" className="font-semibold">{labels.dialogTitle}</Typography>
+							<Typography variant="caption" sx={{ color: 'text.secondary' }}>شرکت‌ها را جستجو و انتخاب کنید</Typography>
 						</div>
 					</div>
 					<IconButton onClick={handleClose} size="small">
@@ -593,7 +643,8 @@ function AddCompaniesDialog({
 }
 
 // Main Component
-function RelatedCompaniesTab({ bankType = 'food' }) {
+function RelatedCompaniesTab({ bankType = 'food', relationType = 'related' }) {
+	const labels = RELATION_CONFIG[relationType] || RELATION_CONFIG.related;
 	const { watch } = useFormContext();
 	const companyId = watch('id');
 	const companyName = watch('companyName') || watch('name');
@@ -609,7 +660,7 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 		isFetching: isRelatedFetching,
 		refetch: refetchRelated
 	} = useGetRelatedCompaniesEnrichedQuery(
-		companyId,
+		{ companyId, relationType },
 		{ skip: !companyId }
 	);
 
@@ -632,12 +683,13 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 		try {
 			await removeRelatedCompany({
 				companyId: companyId,
-				relatedCompanyId: company.id
+				relatedCompanyId: company.id,
+				relationType
 			}).unwrap();
 			
-			enqueueSnackbar('شرکت از لیست مرتبط حذف شد', { variant: 'success' });
+			enqueueSnackbar(labels.removed, { variant: 'success' });
 		} catch (error) {
-			enqueueSnackbar('خطا در حذف از لیست مرتبط', { variant: 'error' });
+			enqueueSnackbar(labels.removeError, { variant: 'error' });
 		} finally {
 			setRemovingId(null);
 		}
@@ -653,7 +705,8 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 		try {
 			await reorderRelatedCompanies({
 				companyId: companyId,
-				orderedCompanyIds: newOrder.map(c => c.id)
+				orderedCompanyIds: newOrder.map(c => c.id),
+				relationType
 			}).unwrap();
 		} catch (error) {
 			// Revert on error
@@ -698,10 +751,10 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 							</div>
 							<div>
 								<Typography variant="h5" className="font-bold" sx={{ color: 'text.primary' }}>
-									شرکت‌های مرتبط
+									{labels.title}
 								</Typography>
 								<Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-									مدیریت شرکت‌های مرتبط با "{companyName}"
+									{labels.subtitle(companyName)}
 								</Typography>
 							</div>
 						</div>
@@ -723,7 +776,7 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 							<div className="flex items-center gap-12">
 								<HiOutlineLink size={20} className="text-indigo-500" />
 								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
-									{totalElements} شرکت مرتبط
+									{labels.count(totalElements)}
 								</Typography>
 							</div>
 							
@@ -749,7 +802,7 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 										}
 									}}
 								>
-									افزودن شرکت مرتبط
+									{labels.addButton}
 								</Button>
 							</div>
 						</Paper>
@@ -789,10 +842,10 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 							<HiOutlineLink size={40} className="text-gray-300 dark:text-gray-600" />
 						</div>
 						<Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
-							هنوز شرکت مرتبطی اضافه نشده است
+							{labels.empty}
 						</Typography>
 						<Typography variant="body2" sx={{ color: 'text.disabled', mb: 3 }}>
-							با کلیک روی دکمه زیر، شرکت‌های مرتبط را اضافه کنید
+							با کلیک روی دکمه زیر، شرکت‌ها را اضافه کنید
 						</Typography>
 						<Button
 							variant="outlined"
@@ -807,7 +860,7 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 								}
 							}}
 						>
-							افزودن اولین شرکت مرتبط
+							{labels.addFirst}
 						</Button>
 					</Paper>
 				</motion.div>
@@ -852,6 +905,8 @@ function RelatedCompaniesTab({ bankType = 'food' }) {
 				sourceCompanyId={companyId}
 				existingRelatedIds={existingRelatedIds}
 				onAddSuccess={() => refetchRelated()}
+				relationType={relationType}
+				labels={labels}
 			/>
 		</div>
 	);

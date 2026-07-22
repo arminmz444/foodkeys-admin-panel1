@@ -29,6 +29,12 @@ const VersionHistoryTab = lazy(() => import("./tabs/VersionHistoryTab"));
 const RelatedCompaniesTab = lazy(() =>
 	import("src/app/shared-components/related-companies/RelatedCompaniesTab")
 );
+const AnnouncementsTab = lazy(() =>
+	import("src/app/shared-components/announcements/AnnouncementsTab")
+);
+const AdvertisementsTab = lazy(() =>
+	import("src/app/shared-components/advertisements/AdvertisementsTab")
+);
 
 /**
  * Form Validation Schema
@@ -171,8 +177,12 @@ function Company() {
               <Tab className="h-64" label="مکان روی نقشه" />
               <Tab className="h-64" label="اطلاعات بیشتر" />
               <Tab className="h-64" label="آرشیوها" /> 
-              <Tab className="h-64" label="تاریخچه نسخه‌ها" /> 
+              {/* <Tab className="h-64" label="تاریخچه نسخه‌ها" /> */}
               <Tab className="h-64" label="شرکت‌های مرتبط" /> 
+              <Tab className="h-64" label="شرکت‌های رقیب" /> 
+              <Tab className="h-64" label="شرکت‌های زیرمجموعه" /> 
+              <Tab className="h-64" label="اعلان‌ها" /> 
+              <Tab className="h-64" label="تبلیغات" /> 
             </Tabs>
             <div className="p-16 sm:p-24 w-full">
               <Suspense fallback={<FuseLoading />}>
@@ -185,8 +195,11 @@ function Company() {
                 {tabValue === 6 && <MapTab tabValue={tabValue} myIndex={6} />}
                 {tabValue === 7 && <RegistrarTab />}
                 {tabValue === 8 && <ArchivesTab />}
-                {tabValue === 9 && <VersionHistoryTab />}
-                {tabValue === 10 && <RelatedCompaniesTab bankType="food" />}
+                {tabValue === 9 && <RelatedCompaniesTab bankType="food" relationType="related" />}
+                {tabValue === 10 && <RelatedCompaniesTab bankType="food" relationType="rival" />}
+                {tabValue === 11 && <RelatedCompaniesTab bankType="food" relationType="sub-company" />}
+                {tabValue === 12 && <AnnouncementsTab name="additionalInfo.announcements" />}
+                {tabValue === 13 && <AdvertisementsTab name="additionalInfo.advertisements" />}
               </Suspense>
             </div>
           </>

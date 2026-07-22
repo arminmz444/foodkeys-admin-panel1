@@ -524,7 +524,7 @@ const schema = z.object({
   price: z.string().nonempty("مبلغ الزامی می‌باشد."),
   timeDuration: z.string().nonempty("مدت زمان الزامی می‌باشد."),
   status: z.string().nonempty("وضعیت الزامی می‌باشد."),
-  description: z.string().nonempty("توضیحات الزامی می‌باشد."),
+  description: z.string().optional(),
   features: z.string().nonempty("ویژگی‌ها الزامی می‌باشد."),
   providedAccess: z.array(z.string()).optional(),
 });
@@ -916,6 +916,7 @@ function AddBundle({ onBundleAdded, editData, onBundleEdited, onClose }) {
                             error={!!errors.features}
                             helperText={errors?.features?.message || "ویژگی‌ها را با نقطه از هم جدا کنید. مثال: ویژگی اول. ویژگی دوم. ویژگی سوم"}
                             fullWidth
+                            required
                             InputProps={{
                               startAdornment: (
                                   <InputAdornment position="start">

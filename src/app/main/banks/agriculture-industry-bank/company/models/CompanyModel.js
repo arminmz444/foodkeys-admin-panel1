@@ -149,6 +149,8 @@ const CompanyModel = (data) => {
     visit: data?.visit || 0,
     ranking: data?.ranking || 0,
     rankingAll: data?.rankingAll || 0,
+    likes: data?.likes ?? 0,
+    dislikes: data?.dislikes ?? 0,
     
     // // Only keep legacy fields if there's migration needed
     // // These can be removed if not required

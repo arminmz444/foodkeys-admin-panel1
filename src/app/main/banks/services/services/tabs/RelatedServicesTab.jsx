@@ -44,11 +44,59 @@ import {
 	useGetAllRelatedEntitiesQuery,
 	useAddRelatedEntitiesMutation,
 	useRemoveRelatedEntitiesMutation,
-	useReorderRelatedEntitiesMutation
+	useReorderRelatedEntitiesMutation,
+	useGetRelatedCompaniesEnrichedQuery,
+	useAddRelatedCompaniesBatchMutation,
+	useRemoveRelatedCompanyMutation,
+	useReorderRelatedCompaniesMutation
 } from 'src/app/main/apps/settings/tabs/related-entities/store/relatedEntityApi';
 import { useLazyGetServicesQuery } from '../../ServicesBankApi';
 
 const ENTITY_TYPE = 'SERVICE';
+
+// Labels/config for each relation type so the same component can render
+// related, rival and sub-company management tabs for services.
+const RELATION_CONFIG = {
+	related: {
+		title: 'سرویس‌های مرتبط',
+		subtitle: (name) => `مدیریت سرویس‌های مرتبط با "${name}"`,
+		count: (n) => `${n} سرویس مرتبط`,
+		addButton: 'افزودن سرویس مرتبط',
+		addFirst: 'افزودن اولین سرویس مرتبط',
+		empty: 'هنوز سرویس مرتبطی اضافه نشده است',
+		dialogTitle: 'افزودن سرویس مرتبط',
+		removed: 'سرویس از لیست مرتبط حذف شد',
+		removeError: 'خطا در حذف از لیست مرتبط',
+		addedTpl: (n) => `${n} سرویس به لیست مرتبط اضافه شد`,
+		addError: 'خطا در افزودن به لیست مرتبط'
+	},
+	rival: {
+		title: 'سرویس‌های رقیب',
+		subtitle: (name) => `مدیریت سرویس‌های رقیب با "${name}"`,
+		count: (n) => `${n} سرویس رقیب`,
+		addButton: 'افزودن سرویس رقیب',
+		addFirst: 'افزودن اولین سرویس رقیب',
+		empty: 'هنوز سرویس رقیبی اضافه نشده است',
+		dialogTitle: 'افزودن سرویس رقیب',
+		removed: 'سرویس از لیست رقبا حذف شد',
+		removeError: 'خطا در حذف از لیست رقبا',
+		addedTpl: (n) => `${n} سرویس به لیست رقبا اضافه شد`,
+		addError: 'خطا در افزودن به لیست رقبا'
+	},
+	'sub-company': {
+		title: 'سرویس‌های زیرمجموعه',
+		subtitle: (name) => `مدیریت سرویس‌های زیرمجموعه "${name}"`,
+		count: (n) => `${n} سرویس زیرمجموعه`,
+		addButton: 'افزودن سرویس زیرمجموعه',
+		addFirst: 'افزودن اولین سرویس زیرمجموعه',
+		empty: 'هنوز سرویس زیرمجموعه‌ای اضافه نشده است',
+		dialogTitle: 'افزودن سرویس زیرمجموعه',
+		removed: 'سرویس از لیست زیرمجموعه‌ها حذف شد',
+		removeError: 'خطا در حذف از لیست زیرمجموعه‌ها',
+		addedTpl: (n) => `${n} سرویس به لیست زیرمجموعه‌ها اضافه شد`,
+		addError: 'خطا در افزودن به لیست زیرمجموعه‌ها'
+	}
+};
 
 function RelatedServiceCard({ service, onRemove, isRemoving, index }) {
 	const serviceName = service.name || service.relatedEntityName || `سرویس #${service.relatedEntityId || service.id}`;
@@ -176,7 +224,15 @@ function RelatedServiceCard({ service, onRemove, isRemoving, index }) {
 	);
 }
 
-function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds, onAddSuccess }) {
+function AddServicesDialog({
+	open,
+	onClose,
+	sourceServiceId,
+	existingRelatedIds,
+	onAddSuccess,
+	relationType = 'related',
+	labels = RELATION_CONFIG.related
+}) {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [selectedServices, setSelectedServices] = useState([]);
 	const [allServices, setAllServices] = useState([]);
@@ -186,7 +242,9 @@ function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds,
 	const scrollContainerRef = useRef(null);
 
 	const [triggerSearch, { isLoading: isSearching }] = useLazyGetServicesQuery();
-	const [addRelatedEntities, { isLoading: isAdding }] = useAddRelatedEntitiesMutation();
+	const [addRelatedEntities, { isLoading: isAddingRelated }] = useAddRelatedEntitiesMutation();
+	const [addRivalBatch, { isLoading: isAddingBatch }] = useAddRelatedCompaniesBatchMutation();
+	const isAdding = isAddingRelated || isAddingBatch;
 
 	const loadServices = useCallback(
 		async (page, search = '', reset = false) => {
@@ -266,13 +324,21 @@ function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds,
 		if (selectedServices.length === 0) return;
 
 		try {
-			await addRelatedEntities({
-				entityType: ENTITY_TYPE,
-				sourceEntityId: sourceServiceId,
-				relatedEntityIds: selectedServices.map((s) => s.id)
-			}).unwrap();
+			if (relationType === 'related') {
+				await addRelatedEntities({
+					entityType: ENTITY_TYPE,
+					sourceEntityId: sourceServiceId,
+					relatedEntityIds: selectedServices.map((s) => s.id)
+				}).unwrap();
+			} else {
+				await addRivalBatch({
+					companyId: sourceServiceId,
+					relatedCompanyIds: selectedServices.map((s) => s.id),
+					relationType
+				}).unwrap();
+			}
 
-			enqueueSnackbar(`${selectedServices.length} سرویس به لیست مرتبط اضافه شد`, {
+			enqueueSnackbar(labels.addedTpl(selectedServices.length), {
 				variant: 'success'
 			});
 
@@ -282,7 +348,7 @@ function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds,
 			onAddSuccess?.();
 			onClose();
 		} catch (error) {
-			enqueueSnackbar('خطا در افزودن به لیست مرتبط', {
+			enqueueSnackbar(labels.addError, {
 				variant: 'error'
 			});
 		}
@@ -318,10 +384,10 @@ function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds,
 						</div>
 						<div>
 							<Typography variant="h6" className="font-semibold">
-								افزودن سرویس مرتبط
+								{labels.dialogTitle}
 							</Typography>
 							<Typography variant="caption" sx={{ color: 'text.secondary' }}>
-								سرویس‌های مرتبط را جستجو و انتخاب کنید
+								سرویس‌ها را جستجو و انتخاب کنید
 							</Typography>
 						</div>
 					</div>
@@ -534,7 +600,9 @@ function AddServicesDialog({ open, onClose, sourceServiceId, existingRelatedIds,
 	);
 }
 
-function RelatedServicesTab({ isDraft = false }) {
+function RelatedServicesTab({ isDraft = false, relationType = 'related' }) {
+	const labels = RELATION_CONFIG[relationType] || RELATION_CONFIG.related;
+	const isRelated = relationType === 'related';
 	const { watch } = useFormContext();
 	const serviceId = watch('id');
 	const serviceName = watch('name');
@@ -544,18 +612,28 @@ function RelatedServicesTab({ isDraft = false }) {
 	const [relatedServices, setRelatedServices] = useState([]);
 	const [removingId, setRemovingId] = useState(null);
 
+	// Related uses the generic entity API; rival/sub-company use company endpoints.
+	const relatedQuery = useGetAllRelatedEntitiesQuery(
+		{ entityType: ENTITY_TYPE, sourceEntityId: serviceId },
+		{ skip: !isSavedService || !isRelated }
+	);
+	const companyQuery = useGetRelatedCompaniesEnrichedQuery(
+		{ companyId: serviceId, relationType },
+		{ skip: !isSavedService || isRelated }
+	);
+
 	const {
 		data: relatedData,
 		isLoading: isRelatedLoading,
 		isFetching: isRelatedFetching,
 		refetch: refetchRelated
-	} = useGetAllRelatedEntitiesQuery(
-		{ entityType: ENTITY_TYPE, sourceEntityId: serviceId },
-		{ skip: !isSavedService }
-	);
+	} = isRelated ? relatedQuery : companyQuery;
 
 	const [removeRelatedEntities] = useRemoveRelatedEntitiesMutation();
-	const [reorderRelatedEntities, { isLoading: isReordering }] = useReorderRelatedEntitiesMutation();
+	const [reorderRelatedEntities, { isLoading: isReorderingEntities }] = useReorderRelatedEntitiesMutation();
+	const [removeRelatedCompany] = useRemoveRelatedCompanyMutation();
+	const [reorderRelatedCompanies, { isLoading: isReorderingCompanies }] = useReorderRelatedCompaniesMutation();
+	const isReordering = isReorderingEntities || isReorderingCompanies;
 
 	useEffect(() => {
 		if (relatedData) {
@@ -571,16 +649,24 @@ function RelatedServicesTab({ isDraft = false }) {
 		const relatedId = getRelatedId(service);
 		setRemovingId(relatedId);
 		try {
-			await removeRelatedEntities({
-				entityType: ENTITY_TYPE,
-				sourceEntityId: serviceId,
-				relatedEntityIds: [relatedId]
-			}).unwrap();
+			if (isRelated) {
+				await removeRelatedEntities({
+					entityType: ENTITY_TYPE,
+					sourceEntityId: serviceId,
+					relatedEntityIds: [relatedId]
+				}).unwrap();
+			} else {
+				await removeRelatedCompany({
+					companyId: serviceId,
+					relatedCompanyId: relatedId,
+					relationType
+				}).unwrap();
+			}
 
-			enqueueSnackbar('سرویس از لیست مرتبط حذف شد', { variant: 'success' });
+			enqueueSnackbar(labels.removed, { variant: 'success' });
 			refetchRelated();
 		} catch (error) {
-			enqueueSnackbar('خطا در حذف از لیست مرتبط', { variant: 'error' });
+			enqueueSnackbar(labels.removeError, { variant: 'error' });
 		} finally {
 			setRemovingId(null);
 		}
@@ -593,11 +679,19 @@ function RelatedServicesTab({ isDraft = false }) {
 		if (!serviceId || isReordering) return;
 
 		try {
-			await reorderRelatedEntities({
-				entityType: ENTITY_TYPE,
-				sourceEntityId: serviceId,
-				orderedRelatedEntityIds: newOrder.map((s) => getRelatedId(s))
-			}).unwrap();
+			if (isRelated) {
+				await reorderRelatedEntities({
+					entityType: ENTITY_TYPE,
+					sourceEntityId: serviceId,
+					orderedRelatedEntityIds: newOrder.map((s) => getRelatedId(s))
+				}).unwrap();
+			} else {
+				await reorderRelatedCompanies({
+					companyId: serviceId,
+					orderedCompanyIds: newOrder.map((s) => getRelatedId(s)),
+					relationType
+				}).unwrap();
+			}
 		} catch (error) {
 			setRelatedServices(oldOrder);
 			enqueueSnackbar('خطا در تغییر ترتیب', { variant: 'error' });
@@ -635,10 +729,10 @@ function RelatedServicesTab({ isDraft = false }) {
 							</div>
 							<div>
 								<Typography variant="h5" className="font-bold" sx={{ color: 'text.primary' }}>
-									سرویس‌های مرتبط
+									{labels.title}
 								</Typography>
 								<Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-									مدیریت سرویس‌های مرتبط با "{serviceName}"
+									{labels.subtitle(serviceName)}
 								</Typography>
 							</div>
 						</div>
@@ -659,7 +753,7 @@ function RelatedServicesTab({ isDraft = false }) {
 							<div className="flex items-center gap-12">
 								<HiOutlineLink size={20} className="text-indigo-500" />
 								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
-									{totalElements} سرویس مرتبط
+									{labels.count(totalElements)}
 								</Typography>
 							</div>
 
@@ -681,7 +775,7 @@ function RelatedServicesTab({ isDraft = false }) {
 										}
 									}}
 								>
-									افزودن سرویس مرتبط
+									{labels.addButton}
 								</Button>
 							</div>
 						</Paper>
@@ -711,10 +805,10 @@ function RelatedServicesTab({ isDraft = false }) {
 							<HiOutlineLink size={40} className="text-gray-300 dark:text-gray-600" />
 						</div>
 						<Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
-							هنوز سرویس مرتبطی اضافه نشده است
+							{labels.empty}
 						</Typography>
 						<Typography variant="body2" sx={{ color: 'text.disabled', mb: 3 }}>
-							با کلیک روی دکمه زیر، سرویس‌های مرتبط را اضافه کنید
+							با کلیک روی دکمه زیر، سرویس‌ها را اضافه کنید
 						</Typography>
 						<Button
 							variant="outlined"
@@ -729,7 +823,7 @@ function RelatedServicesTab({ isDraft = false }) {
 								}
 							}}
 						>
-							افزودن اولین سرویس مرتبط
+							{labels.addFirst}
 						</Button>
 					</Paper>
 				</motion.div>
@@ -769,6 +863,8 @@ function RelatedServicesTab({ isDraft = false }) {
 				sourceServiceId={serviceId}
 				existingRelatedIds={existingRelatedIds}
 				onAddSuccess={() => refetchRelated()}
+				relationType={relationType}
+				labels={labels}
 			/>
 		</div>
 	);

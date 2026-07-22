@@ -221,14 +221,14 @@ const SettingsAppNavigation = {
 			url: "/apps/settings/favorites",
 			subtitle: "مدیریت شرکت‌ها، خدمات و محصولات منتخب",
 		},
-		{
-			id: "apps.settings.related-entities",
-			icon: "heroicons-outline:link",
-			title: "مدیریت موجودیت‌های مرتبط",
-			type: "item",
-			url: "/apps/settings/related-entities",
-			subtitle: "مدیریت شرکت‌ها، خدمات و محصولات مرتبط",
-		},
+		// {
+		// 	id: "apps.settings.related-entities",
+		// 	icon: "heroicons-outline:link",
+		// 	title: "مدیریت موجودیت‌های مرتبط",
+		// 	type: "item",
+		// 	url: "/apps/settings/related-entities",
+		// 	subtitle: "مدیریت شرکت‌ها، خدمات و محصولات مرتبط",
+		// },
 		{
 			id: "apps.settings.file-service-type-entity",
 			icon: "heroicons-outline:folder",
@@ -238,56 +238,56 @@ const SettingsAppNavigation = {
 			subtitle: "تنظیمات انواع فایل ها",
 		},
 
-		// Website Configuration Section
-		{
-			id: "apps.settings.website-pages",
-			icon: "heroicons-outline:globe-alt",
-			title: "تنظیمات صفحات سایت",
-			type: "collapse",
-			subtitle: "مدیریت محتوای صفحات مختلف سایت",
-			children: [
-				{
-					id: "apps.settings.homepage",
-					icon: "heroicons-outline:home",
-					title: "صفحه اول (خانه)",
-					type: "item",
-					url: "/apps/settings/homepage",
-					subtitle: "تنظیمات صفحه اول سایت شامل: اسلایدر، محتوا و ...",
-				},
-				{
-					id: "apps.settings.career-page",
-					icon: "heroicons-outline:briefcase",
-					title: "صفحه فرصت‌های شغلی",
-					type: "item",
-					url: "/apps/settings/career-page",
-					subtitle: "تنظیمات مسیرهای شغلی و موقعیت‌های استخدامی",
-				},
-				{
-					id: "apps.settings.faq-page",
-					icon: "heroicons-outline:question-mark-circle",
-					title: "صفحه سوالات متداول",
-					type: "item",
-					url: "/apps/settings/faq-page",
-					subtitle: "مدیریت سوالات متداول و پاسخ‌ها",
-				},
-				{
-					id: "apps.settings.guide-page",
-					icon: "heroicons-outline:book-open",
-					title: "صفحه راهنما و درباره ما",
-					type: "item",
-					url: "/apps/settings/guide-page",
-					subtitle: "تنظیمات راهنما، درباره ما و قوانین رتبه‌بندی",
-				},
-				{
-					id: "apps.settings.contact-page",
-					icon: "heroicons-outline:phone",
-					title: "صفحه تماس با ما",
-					type: "item",
-					url: "/apps/settings/contact-page",
-					subtitle: "تنظیمات اطلاعات تماس و راه‌های ارتباطی",
-				}
-			]
-		},
+		// // Website Configuration Section
+		// {
+		// 	id: "apps.settings.website-pages",
+		// 	icon: "heroicons-outline:globe-alt",
+		// 	title: "تنظیمات صفحات سایت",
+		// 	type: "collapse",
+		// 	subtitle: "مدیریت محتوای صفحات مختلف سایت",
+		// 	children: [
+		// 		{
+		// 			id: "apps.settings.homepage",
+		// 			icon: "heroicons-outline:home",
+		// 			title: "صفحه اول (خانه)",
+		// 			type: "item",
+		// 			url: "/apps/settings/homepage",
+		// 			subtitle: "تنظیمات صفحه اول سایت شامل: اسلایدر، محتوا و ...",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.career-page",
+		// 			icon: "heroicons-outline:briefcase",
+		// 			title: "صفحه فرصت‌های شغلی",
+		// 			type: "item",
+		// 			url: "/apps/settings/career-page",
+		// 			subtitle: "تنظیمات مسیرهای شغلی و موقعیت‌های استخدامی",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.faq-page",
+		// 			icon: "heroicons-outline:question-mark-circle",
+		// 			title: "صفحه سوالات متداول",
+		// 			type: "item",
+		// 			url: "/apps/settings/faq-page",
+		// 			subtitle: "مدیریت سوالات متداول و پاسخ‌ها",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.guide-page",
+		// 			icon: "heroicons-outline:book-open",
+		// 			title: "صفحه راهنما و درباره ما",
+		// 			type: "item",
+		// 			url: "/apps/settings/guide-page",
+		// 			subtitle: "تنظیمات راهنما، درباره ما و قوانین رتبه‌بندی",
+		// 		},
+		// 		{
+		// 			id: "apps.settings.contact-page",
+		// 			icon: "heroicons-outline:phone",
+		// 			title: "صفحه تماس با ما",
+		// 			type: "item",
+		// 			url: "/apps/settings/contact-page",
+		// 			subtitle: "تنظیمات اطلاعات تماس و راه‌های ارتباطی",
+		// 		}
+		// 	]
+		// },
 
 		// {
 		// 	id: "apps.settings.website-configs",

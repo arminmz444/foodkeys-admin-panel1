@@ -226,7 +226,7 @@ function DynamicConfigList({
     onSearchChange,
 }) {
     const [localSearch, setLocalSearch] = useState('');
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+    const [viewMode, setViewMode] = useState('list'); // 'grid' | 'list'
 
     // Debounced search – fires onSearchChange after 500ms of inactivity
     const debouncedSearch = useMemo(
@@ -329,11 +329,11 @@ function DynamicConfigList({
                     onChange={handleViewModeChange}
                     size="small"
                 >
-                    <ToggleButton value="grid">
-                        <MdGridView size={20} />
-                    </ToggleButton>
                     <ToggleButton value="list">
                         <MdViewList size={20} />
+                    </ToggleButton>
+                    <ToggleButton value="grid">
+                        <MdGridView size={20} />
                     </ToggleButton>
                 </ToggleButtonGroup>
             </div>

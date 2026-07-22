@@ -113,7 +113,7 @@ function FinanceDashboardAppHeader({ onRefresh, isRefreshing, appliedFilters, su
                   ease: 'linear',
                 }}
               >
-                <FuseSvgIcon size={22}>heroicons-solid:arrow-path</FuseSvgIcon>
+                <FuseSvgIcon size={22}>heroicons-outline:refresh</FuseSvgIcon>
               </motion.div>
             </IconButton>
           </Tooltip>

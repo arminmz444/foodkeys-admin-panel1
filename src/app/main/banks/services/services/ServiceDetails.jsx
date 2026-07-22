@@ -36,6 +36,8 @@ import RelatedServicesTab from './tabs/RelatedServicesTab';
 import RegistrarTab from './tabs/RegistrarTab';
 import ServiceGalleryTab from './tabs/ServiceGalleryTab';
 import { BasicInfoTab, SpecializedInfoTab } from './tabs/BasicAndSpecializedTabs';
+import AnnouncementsTab from 'src/app/shared-components/announcements/AnnouncementsTab';
+import AdvertisementsTab from 'src/app/shared-components/advertisements/AdvertisementsTab';
 
 function processFileCategory(galleryFiles, fileArray, fileServiceType) {
 	if (!fileArray || !Array.isArray(fileArray)) return;
@@ -69,6 +71,8 @@ const defaultFormValues = {
 	nameEn: '',
 	ranking: 0,
 	rankingAll: 0,
+	likes: 0,
+	dislikes: 0,
 	description: '',
 	subCategoryId: '',
 	elasticFields: '',
@@ -254,6 +258,8 @@ function ServiceDetails() {
 					nameEn: found.nameEn || '',
 					ranking: found.ranking || 0,
 					rankingAll: found.rankingAll || 0,
+					likes: found.likes ?? 0,
+					dislikes: found.dislikes ?? 0,
 					description: found.description || '',
 					subCategoryId: found.subCategoryId || '',
 					elasticFields: found.elasticFields ? found.elasticFields.join(',') : '',
@@ -305,6 +311,8 @@ function ServiceDetails() {
 				nameEn: serviceFromApi.nameEn || '',
 				ranking: serviceFromApi.ranking || 0,
 				rankingAll: serviceFromApi.rankingAll || 0,
+				likes: serviceFromApi.likes ?? 0,
+				dislikes: serviceFromApi.dislikes ?? 0,
 				description: serviceFromApi.description || '',
 				subCategoryId: serviceFromApi.subCategoryId || '',
 				elasticFields: serviceFromApi.elasticFields ? serviceFromApi.elasticFields.join(',') : '',
@@ -367,6 +375,8 @@ function ServiceDetails() {
 			nameEn: data.nameEn,
 			ranking: parseInt(data.ranking, 10) || 0,
 			rankingAll: parseInt(data.rankingAll, 10) || 0,
+			likes: Math.max(0, parseInt(data.likes, 10) || 0),
+			dislikes: Math.max(0, parseInt(data.dislikes, 10) || 0),
 			description: data.description,
 			subCategoryId: parseInt(data.subCategoryId, 10) || 0,
 			elasticFields: elasticFieldsArray,
@@ -575,6 +585,10 @@ function ServiceDetails() {
 						<Tab className="h-64" label="اطلاعات بیشتر" />
 						<Tab className="h-64" label="آرشیوها" disabled={!isSavedService} />
 						<Tab className="h-64" label="سرویس‌های مرتبط" disabled={!isSavedService} />
+						<Tab className="h-64" label="سرویس‌های رقیب" disabled={!isSavedService} />
+						<Tab className="h-64" label="سرویس‌های زیرمجموعه" disabled={!isSavedService} />
+						<Tab className="h-64" label="اعلان‌ها" />
+						<Tab className="h-64" label="تبلیغات" />
 					</Tabs>
 
 					<div className="p-24 sm:p-32 md:p-40 w-full">
@@ -610,7 +624,11 @@ function ServiceDetails() {
 							) : (
 								<Alert severity="info">آرشیوها پس از ذخیره سرویس در دسترس خواهند بود.</Alert>
 							))}
-						{tabValue === 6 && <RelatedServicesTab isDraft={isDraft || isCreateMode} />}
+						{tabValue === 6 && <RelatedServicesTab isDraft={isDraft || isCreateMode} relationType="related" />}
+						{tabValue === 7 && <RelatedServicesTab isDraft={isDraft || isCreateMode} relationType="rival" />}
+						{tabValue === 8 && <RelatedServicesTab isDraft={isDraft || isCreateMode} relationType="sub-company" />}
+						{tabValue === 9 && <AnnouncementsTab name="additionalData.announcements" />}
+						{tabValue === 10 && <AdvertisementsTab name="additionalData.advertisements" />}
 					</div>
 				</Paper>
 

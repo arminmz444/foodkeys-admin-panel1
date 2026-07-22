@@ -126,16 +126,19 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 		}),
 
 		// ========== Company-Specific Endpoints ==========
+		// All company endpoints use the unified
+		// `/related/company/{companyId}/{relationType}/**` URL format.
+		// relationType can be 'related' (default), 'rival' or 'sub-company'.
 
 		// Get related companies (enriched, website format)
 		getRelatedCompaniesEnriched: builder.query({
-			query: (companyId) => ({
-				url: `/related/company/${companyId}`,
+			query: ({ companyId, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}`,
 				method: 'GET'
 			}),
 			transformResponse: (response) => response?.data || [],
-			providesTags: (result, error, companyId) => [
-				{ type: 'RelatedCompany', id: companyId }
+			providesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` }
 			],
 			keepUnusedDataFor: 0,
 			refetchOnMountOrArgChange: true
@@ -143,8 +146,8 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 
 		// Get related companies with pagination (admin format)
 		getRelatedCompaniesPaginated: builder.query({
-			query: ({ companyId, pageNumber = 1, pageSize = 10 }) => ({
-				url: `/related/company/${companyId}/paginated`,
+			query: ({ companyId, relationType = 'related', pageNumber = 1, pageSize = 10 }) => ({
+				url: `/related/company/${companyId}/${relationType}/paginated`,
 				method: 'GET',
 				params: { pageNumber, pageSize }
 			}),
@@ -158,8 +161,8 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 				}
 				return data;
 			},
-			providesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			providesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			],
 			keepUnusedDataFor: 0,
 			refetchOnMountOrArgChange: true
@@ -167,120 +170,120 @@ const RelatedEntityApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
 
 		// Add single related company
 		addRelatedCompany: builder.mutation({
-			query: ({ companyId, relatedCompanyId, displayOrder }) => ({
-				url: `/related/company/${companyId}/related/${relatedCompanyId}`,
+			query: ({ companyId, relatedCompanyId, displayOrder, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/${relatedCompanyId}`,
 				method: 'POST',
 				params: displayOrder ? { displayOrder } : {}
 			}),
 			transformResponse: (response) => response?.data,
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Add multiple related companies (batch)
 		addRelatedCompaniesBatch: builder.mutation({
-			query: ({ companyId, relatedCompanyIds }) => ({
-				url: `/related/company/${companyId}/batch`,
+			query: ({ companyId, relatedCompanyIds, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/batch`,
 				method: 'POST',
 				data: relatedCompanyIds
 			}),
 			transformResponse: (response) => response?.data,
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Remove single related company
 		removeRelatedCompany: builder.mutation({
-			query: ({ companyId, relatedCompanyId }) => ({
-				url: `/related/company/${companyId}/related/${relatedCompanyId}`,
+			query: ({ companyId, relatedCompanyId, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/${relatedCompanyId}`,
 				method: 'DELETE'
 			}),
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Remove multiple related companies (batch)
 		removeRelatedCompaniesBatch: builder.mutation({
-			query: ({ companyId, relatedCompanyIds }) => ({
-				url: `/related/company/${companyId}/batch`,
+			query: ({ companyId, relatedCompanyIds, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/batch`,
 				method: 'DELETE',
 				data: relatedCompanyIds
 			}),
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Reorder related companies
 		reorderRelatedCompanies: builder.mutation({
-			query: ({ companyId, orderedCompanyIds }) => ({
-				url: `/related/company/${companyId}/reorder`,
+			query: ({ companyId, orderedCompanyIds, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/reorder`,
 				method: 'PUT',
 				data: orderedCompanyIds
 			}),
 			transformResponse: (response) => response?.data,
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Update display order for single related company
 		updateRelatedCompanyOrder: builder.mutation({
-			query: ({ companyId, relatedCompanyId, newDisplayOrder }) => ({
-				url: `/related/company/${companyId}/related/${relatedCompanyId}/order`,
+			query: ({ companyId, relatedCompanyId, newDisplayOrder, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/${relatedCompanyId}/order`,
 				method: 'PUT',
 				params: { newDisplayOrder }
 			}),
 			transformResponse: (response) => response?.data,
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Toggle related company
 		toggleRelatedCompany: builder.mutation({
-			query: ({ companyId, relatedCompanyId }) => ({
-				url: `/related/company/${companyId}/related/${relatedCompanyId}/toggle`,
+			query: ({ companyId, relatedCompanyId, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/${relatedCompanyId}/toggle`,
 				method: 'POST'
 			}),
 			transformResponse: (response) => response?.data,
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Remove all related companies
 		removeAllRelatedCompanies: builder.mutation({
-			query: ({ companyId, softDelete = false }) => ({
-				url: `/related/company/${companyId}/all`,
+			query: ({ companyId, softDelete = false, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/all`,
 				method: 'DELETE',
 				params: { softDelete }
 			}),
-			invalidatesTags: (result, error, { companyId }) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 
 		// Normalize related companies order
 		normalizeRelatedCompaniesOrder: builder.mutation({
-			query: (companyId) => ({
-				url: `/related/company/${companyId}/normalize`,
+			query: ({ companyId, relationType = 'related' }) => ({
+				url: `/related/company/${companyId}/${relationType}/normalize`,
 				method: 'POST'
 			}),
-			invalidatesTags: (result, error, companyId) => [
-				{ type: 'RelatedCompany', id: companyId },
-				{ type: 'RelatedCompany', id: `paginated-${companyId}` }
+			invalidatesTags: (result, error, { companyId, relationType = 'related' }) => [
+				{ type: 'RelatedCompany', id: `${relationType}-${companyId}` },
+				{ type: 'RelatedCompany', id: `paginated-${relationType}-${companyId}` }
 			]
 		}),
 

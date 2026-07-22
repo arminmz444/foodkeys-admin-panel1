@@ -81,7 +81,7 @@ const schema = z.object({
     startDateTime: z.string().nonempty("تاریخ شروع الزامیست."),
     expireDateTime: z.string().nonempty("تاریخ پایان الزامیست."),
     status: z.string(),
-    maxUses: z.number().optional().nullable(),
+    maxUses: z.string().optional().nullable(),
     maxUsesPerUser: requiredNumber("حداکثر استفاده برای هر کاربر الزامیست.", s => s.int().min(1)),
 });
 

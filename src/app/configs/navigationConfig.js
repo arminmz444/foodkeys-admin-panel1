@@ -142,13 +142,13 @@ const navigationConfig = [
             type: "item",
             url: "banks/food-industry/request/list",
           },
-          {
-            id: "banks.food-industry-bank.archive",
-            title: "BANK_ARCHIVE",
-            translate: "BANK_ARCHIVE",
-            type: "item",
-            url: "banks/food-industry/archive",
-          },
+          // {
+          //   id: "banks.food-industry-bank.archive",
+          //   title: "BANK_ARCHIVE",
+          //   translate: "BANK_ARCHIVE",
+          //   type: "item",
+          //   url: "banks/food-industry/archive",
+          // },
         ],
       },
       {
@@ -173,13 +173,13 @@ const navigationConfig = [
             type: "item",
             url: "banks/agriculture-industry/request/list",
           },
-          {
-            id: "banks.agriculture-industry-bank.archive",
-            title: "BANK_ARCHIVE",
-            translate: "BANK_ARCHIVE",
-            type: "item",
-            url: "banks/agriculture-industry/archive",
-          },
+          // {
+          //   id: "banks.agriculture-industry-bank.archive",
+          //   title: "BANK_ARCHIVE",
+          //   translate: "BANK_ARCHIVE",
+          //   type: "item",
+          //   url: "banks/agriculture-industry/archive",
+          // },
         ],
       },
           {
