@@ -2588,7 +2588,9 @@ function FormPreview({
                        initialData = {},
                        onDataChange = () => {},
                        submitButtonLabel = 'ارسال فرم',
-                       hideSubmitButton = false
+                       hideSubmitButton = false,
+                       externalErrors = {},
+                       onClearExternalError = () => {}
                      }) {
   const [submittedData, setSubmittedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -2870,17 +2872,32 @@ function FormPreview({
     return rules;
   };
 
+  const getFieldErrorMessage = (fieldName) =>
+    errors[fieldName]?.message || externalErrors?.[fieldName] || '';
+
+  const hasFieldError = (fieldName) =>
+    Boolean(errors[fieldName] || externalErrors?.[fieldName]);
+
+  const withClearExternalError = (fieldName, onChange) => (value) => {
+    if (externalErrors?.[fieldName]) {
+      onClearExternalError(fieldName);
+    }
+    onChange(value);
+  };
+
   // Render field based on type
   const renderField = (field) => {
     const fieldType = getFieldType(field);
+    const fieldErrorMessage = getFieldErrorMessage(field.name);
+    const fieldHasError = hasFieldError(field.name);
 
     const fieldProps = {
       fullWidth: true,
       margin: "normal",
       label: field.label || field.title || field.name,
       placeholder: field.placeholder || (field.examples && field.examples[0]) || '',
-      helperText: errors[field.name]?.message || field.description || '',
-      error: !!errors[field.name],
+      helperText: fieldErrorMessage || field.description || '',
+      error: fieldHasError,
       disabled: isSubmitting,
       size: "medium"
     };
@@ -2904,7 +2921,7 @@ function FormPreview({
                     <TextField
                         {...fieldProps}
                         type={fieldType}
-                        onChange={onChange}
+                        onChange={withClearExternalError(field.name, onChange)}
                         onBlur={onBlur}
                         value={value || ""}
                         inputRef={ref}
@@ -2926,7 +2943,7 @@ function FormPreview({
                         {...fieldProps}
                         multiline
                         rows={4}
-                        onChange={onChange}
+                        onChange={withClearExternalError(field.name, onChange)}
                         onBlur={onBlur}
                         value={value || ""}
                         inputRef={ref}
@@ -2950,7 +2967,7 @@ function FormPreview({
                         type="number"
                         onChange={(e) => {
                           const val = e.target.value === '' ? '' : Number(e.target.value);
-                          onChange(val);
+                          withClearExternalError(field.name, onChange)(val);
                         }}
                         onBlur={onBlur}
                         value={value ?? ""}
@@ -2983,7 +3000,7 @@ function FormPreview({
                       <FormControl
                           fullWidth
                           margin="normal"
-                          error={!!errors[field.name]}
+                          error={fieldHasError}
                       >
                         <Typography variant="subtitle2" gutterBottom>
                           {field.label || field.title || field.name}
@@ -2999,11 +3016,11 @@ function FormPreview({
                                   onChange={(e) => {
                                     const newValues = [...arrayValues];
                                     newValues[index] = e.target.value;
-                                    onChange(newValues);
+                                    withClearExternalError(field.name, onChange)(newValues);
                                   }}
                                   onBlur={onBlur}
                                   placeholder={`${field.placeholder || (field.examples && field.examples[0]) || ''} ${index + 1}`}
-                                  error={!!errors[field.name]}
+                                  error={fieldHasError}
                               />
 
                               <IconButton
@@ -3013,11 +3030,11 @@ function FormPreview({
                                     // Remove this item if there's more than one
                                     if (arrayValues.length > 1) {
                                       const newValues = arrayValues.filter((_, i) => i !== index);
-                                      onChange(newValues);
+                                      withClearExternalError(field.name, onChange)(newValues);
                                     } else {
                                       // If it's the last one, just clear it
                                       const newValues = [''];
-                                      onChange(newValues);
+                                      withClearExternalError(field.name, onChange)(newValues);
                                     }
                                   }}
                                   sx={{ ml: 1 }}
@@ -3042,9 +3059,9 @@ function FormPreview({
                             </Box>
                         ))}
 
-                        {(errors[field.name]?.message || field.description) && (
-                            <FormHelperText error={!!errors[field.name]}>
-                              {errors[field.name]?.message || field.description}
+                        {(fieldErrorMessage || field.description) && (
+                            <FormHelperText error={fieldHasError}>
+                              {fieldErrorMessage || field.description}
                             </FormHelperText>
                         )}
                       </FormControl>
@@ -3065,12 +3082,12 @@ function FormPreview({
                     <FormControl
                         fullWidth
                         margin="normal"
-                        error={!!errors[field.name]}
+                        error={fieldHasError}
                         disabled={isSubmitting}
                     >
                       <InputLabel>{field.label || field.title || field.name}</InputLabel>
                       <Select
-                          onChange={onChange}
+                          onChange={withClearExternalError(field.name, onChange)}
                           onBlur={onBlur}
                           value={value || ""}
                           inputRef={ref}
@@ -3082,9 +3099,9 @@ function FormPreview({
                             </MenuItem>
                         ))}
                       </Select>
-                      {(errors[field.name]?.message || field.description) && (
-                          <FormHelperText error={!!errors[field.name]}>
-                            {errors[field.name]?.message || field.description}
+                      {(fieldErrorMessage || field.description) && (
+                          <FormHelperText error={fieldHasError}>
+                            {fieldErrorMessage || field.description}
                           </FormHelperText>
                       )}
                     </FormControl>
@@ -3104,13 +3121,13 @@ function FormPreview({
                     <FormControl
                         fullWidth
                         margin="normal"
-                        error={!!errors[field.name]}
+                        error={fieldHasError}
                         disabled={isSubmitting}
                     >
                       <InputLabel>{field.label || field.title || field.name}</InputLabel>
                       <Select
                           multiple
-                          onChange={onChange}
+                          onChange={withClearExternalError(field.name, onChange)}
                           onBlur={onBlur}
                           value={value || []}
                           inputRef={ref}
@@ -3122,9 +3139,9 @@ function FormPreview({
                             </MenuItem>
                         ))}
                       </Select>
-                      {(errors[field.name]?.message || field.description) && (
-                          <FormHelperText error={!!errors[field.name]}>
-                            {errors[field.name]?.message || field.description}
+                      {(fieldErrorMessage || field.description) && (
+                          <FormHelperText error={fieldHasError}>
+                            {fieldErrorMessage || field.description}
                           </FormHelperText>
                       )}
                     </FormControl>
@@ -3144,13 +3161,13 @@ function FormPreview({
                     <FormControl
                         fullWidth
                         margin="normal"
-                        error={!!errors[field.name]}
+                        error={fieldHasError}
                     >
                       <FormControlLabel
                           control={
                             <Checkbox
                                 checked={!!value}
-                                onChange={onChange}
+                                onChange={withClearExternalError(field.name, onChange)}
                                 onBlur={onBlur}
                                 inputRef={ref}
                                 disabled={isSubmitting}
@@ -3158,9 +3175,9 @@ function FormPreview({
                           }
                           label={field.label || field.title || field.name}
                       />
-                      {errors[field.name]?.message && (
+                      {fieldErrorMessage && (
                           <FormHelperText error>
-                            {errors[field.name].message}
+                            {fieldErrorMessage}
                           </FormHelperText>
                       )}
                     </FormControl>
@@ -3180,13 +3197,13 @@ function FormPreview({
                     <FormControl
                         component="fieldset"
                         margin="normal"
-                        error={!!errors[field.name]}
+                        error={fieldHasError}
                         disabled={isSubmitting}
                         fullWidth
                     >
                       <FormLabel component="legend">{field.label || field.title || field.name}</FormLabel>
                       <RadioGroup
-                          onChange={onChange}
+                          onChange={withClearExternalError(field.name, onChange)}
                           onBlur={onBlur}
                           value={value || ""}
                           ref={ref}
@@ -3200,9 +3217,9 @@ function FormPreview({
                             />
                         ))}
                       </RadioGroup>
-                      {(errors[field.name]?.message || field.description) && (
-                          <FormHelperText error={!!errors[field.name]}>
-                            {errors[field.name]?.message || field.description}
+                      {(fieldErrorMessage || field.description) && (
+                          <FormHelperText error={fieldHasError}>
+                            {fieldErrorMessage || field.description}
                           </FormHelperText>
                       )}
                     </FormControl>
@@ -3221,24 +3238,24 @@ function FormPreview({
                     <FormControl
                         fullWidth
                         margin="normal"
-                        error={!!errors[field.name]}
+                        error={fieldHasError}
                     >
                       <DatePicker
                           label={field.label || field.title || field.name}
                           value={value}
-                          onChange={onChange}
+                          onChange={withClearExternalError(field.name, onChange)}
                           renderInput={(params) => (
                               <TextField
                                   {...params}
                                   fullWidth
-                                  error={!!errors[field.name]}
-                                  helperText={errors[field.name]?.message || field.description || ''}
+                                  error={fieldHasError}
+                                  helperText={fieldErrorMessage || field.description || ''}
                               />
                           )}
                       />
-                      {errors[field.name] && (
+                      {fieldErrorMessage && (
                           <FormHelperText error>
-                            {errors[field.name].message}
+                            {fieldErrorMessage}
                           </FormHelperText>
                       )}
                     </FormControl>
@@ -3259,7 +3276,7 @@ function FormPreview({
                     <TextField
                         {...fieldProps}
                         type={fieldType}
-                        onChange={onChange}
+                        onChange={withClearExternalError(field.name, onChange)}
                         onBlur={onBlur}
                         value={value || ""}
                         inputRef={ref}
@@ -3280,10 +3297,10 @@ function FormPreview({
                 render={({ field: { onChange, onBlur, value, ref } }) => (
                     <FileUpload
                         value={value}
-                        onChange={onChange}
+                        onChange={withClearExternalError(field.name, onChange)}
                         onBlur={onBlur}
-                        error={!!errors[field.name]}
-                        helperText={errors[field.name]?.message || field.description}
+                        error={fieldHasError}
+                        helperText={fieldErrorMessage || field.description}
                         multiple={field.maxFiles > 1}
                         accept={field.accept || "*"}
                         maxSize={field.maxSize || 5 * 1024 * 1024}

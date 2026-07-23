@@ -239,15 +239,15 @@ function FileSection({
     setValue(fieldName, updatedFiles);
     
     if (file.id && !file.uploadPending && !file.uploadError) {
-      try {
-        axios.patch(`/company/${companyId}/gallery/${file.id}/metadata`, {
-          metadata: newMetadata
-        }).catch(error => {
-          console.error('Error updating file metadata:', error);
-        });
-      } catch (error) {
-        console.error('Error updating file metadata:', error);
-      }
+      // try {
+      //   axios.patch(`/company/${companyId}/gallery/${file.id}/metadata`, {
+      //     metadata: newMetadata
+      //   }).catch(error => {
+      //     console.error('Error updating file metadata:', error);
+      //   });
+      // } catch (error) {
+      //   console.error('Error updating file metadata:', error);
+      // }
     }
   };
 

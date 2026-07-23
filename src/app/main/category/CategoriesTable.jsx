@@ -219,6 +219,7 @@ import EntityStatusField from 'app/shared-components/data-table/EntityStatusFiel
 
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import _ from 'lodash';
+import { CustomUniformsSelect } from 'app/shared-components/dynamic-field-generator/custom-fields/CustomFormFields';
 import {
 	useGetCategoriesQuery,
 	useCreateCategoryMutation,
@@ -226,6 +227,16 @@ import {
 	useDeleteCategoryMutation
 } from './CategoriesApi';
 import GenericCrudTable from '../../shared-components/data-table/GenericCrudTable';
+
+const DEPENDANT_ENTITY_TYPE_OPTIONS = [
+	{ label: 'شرکت', value: 'COMPANY' },
+	{ label: 'خدمت', value: 'SERVICE' }
+];
+
+const DEPENDANT_ENTITY_TYPE_LABEL_MAP = {
+	COMPANY: 'شرکت',
+	SERVICE: 'خدمت'
+};
 
 function CategoryTable() {
 	const [createCategory] = useCreateCategoryMutation();
@@ -251,6 +262,20 @@ function CategoryTable() {
 			{
 				header: 'نام انگلیسی',
 				accessorKey: 'nameEn'
+			},
+			{
+				header: 'نوع موجودیت',
+				accessorKey: 'dependantEntityType',
+				editVariant: 'select',
+				editSelectOptions: DEPENDANT_ENTITY_TYPE_OPTIONS.map((option) => option.label),
+				muiEditTextFieldProps: {
+					select: true
+				},
+				Cell: ({ row }) => {
+					const value = row.original?.dependantEntityType;
+					return DEPENDANT_ENTITY_TYPE_LABEL_MAP[value] || value || '—';
+				},
+				size: 140
 			},
 			{
 				header: 'وضعیت',
@@ -349,6 +374,10 @@ function CategoryTable() {
 		const data = _.clone(vals);
 		// await createCategory(vals).unwrap();
 		data.categoryStatus = vals.categoryStatus === 'فعال' ? 1 : 2;
+		data.dependantEntityType =
+			typeof vals.dependantEntityType === 'object'
+				? vals.dependantEntityType?.value
+				: vals.dependantEntityType;
 		await createCategory(data);
 		// T0D0: HANDLE FIELD VALIDATION
 		// const response = await createCategory(data);
@@ -361,13 +390,18 @@ function CategoryTable() {
 	const handleUpdate = async (vals) => {
 		const data = _.clone(vals);
 		data.categoryStatus = vals.categoryStatus === 'فعال' ? 1 : 2;
+		data.dependantEntityType =
+			typeof vals.dependantEntityType === 'object'
+				? vals.dependantEntityType?.value
+				: vals.dependantEntityType;
 		await updateCategory(data);
 		return true;
 	};
 	const getEditDefaultValues = (rowData) => {
 		return {
 			...rowData,
-			categoryStatus: rowData?.categoryStatus === 1 ? 'فعال' : 'غیرفعال'
+			categoryStatus: rowData?.categoryStatus === 1 ? 'فعال' : 'غیرفعال',
+			dependantEntityType: rowData?.dependantEntityType || ''
 		};
 	};
 	const categorySchema = z.object({
@@ -386,6 +420,19 @@ function CategoryTable() {
 				displayName: 'نام انگلیسی',
 				label: 'نام انگلیسی دسته‌بندی',
 				placeholder: 'نام انگلیسی دسته‌بندی را وارد کنید'
+			}),
+		dependantEntityType: z
+			.enum(['COMPANY', 'SERVICE'], {
+				required_error: 'این فیلد الزامی است',
+				invalid_type_error: 'فرمت داده ورودی اشتباه است',
+				message: 'مقدار انتخاب شده معتبر نیست'
+			})
+			.uniforms({
+				displayName: 'نوع موجودیت',
+				label: 'نوع موجودیت',
+				placeholder: 'نوع موجودیت را انتخاب کنید',
+				// component: CustomUniformsSelect,
+				// options: DEPENDANT_ENTITY_TYPE_OPTIONS
 			}),
 		categoryStatus: z
 			.enum(['فعال', 'غیرفعال'], {
@@ -425,6 +472,17 @@ function CategoryTable() {
 			renderCustomInput: false,
 			classes: 'mt-10',
 			styles: null,
+			props: {
+				fullWidth: true
+			}
+		},
+		dependantEntityType: {
+			label: 'نوع موجودیت',
+			inputType: 'Select',
+			renderCustomInput: false,
+			classes: 'mt-10',
+			styles: null,
+			options: DEPENDANT_ENTITY_TYPE_OPTIONS,
 			props: {
 				fullWidth: true
 			}
@@ -513,6 +571,15 @@ function CategoryTable() {
 					type: 'string',
 					title: 'نام انگلیسی دسته‌بندی'
 				},
+				dependantEntityType: {
+					type: 'string',
+					title: 'نوع موجودیت',
+					description: 'نوع موجودیت وابسته به این دسته‌بندی را انتخاب کنید',
+					enum: ['COMPANY', 'SERVICE'],
+					uniforms: {
+						options: DEPENDANT_ENTITY_TYPE_OPTIONS
+					}
+				},
 				categoryStatus: {
 					type: 'string',
 					title: 'وضعیت دسته‌بندی',
@@ -600,10 +667,16 @@ function CategoryTable() {
 				// 	}
 				// }
 			},
-			required: ['name', 'nameEn', 'categoryStatus', 'pageOrder']
+			required: ['name', 'nameEn', 'dependantEntityType', 'categoryStatus', 'pageOrder']
 		},
 		formHeaderTitle: 'ثبت دسته‌بندی جدید',
-		defaultValues: { name: '', nameEn: '', categoryStatus: '0', pageOrder: 0 },
+		defaultValues: {
+			name: '',
+			nameEn: '',
+			dependantEntityType: 'COMPANY',
+			categoryStatus: '0',
+			pageOrder: 0
+		},
 		formEngine: 'UNIFORMS',
 		formValidationStruct: 'ZOD_SCHEMA',
 		formGenerationType: 'MANUAL',

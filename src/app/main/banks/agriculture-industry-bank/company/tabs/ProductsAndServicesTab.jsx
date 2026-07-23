@@ -884,15 +884,15 @@ function ProductPictureUpload({ productIndex, name, companyId }) {
       // If the file has an ID from the server, update metadata there too
       const picture = updatedPictures[pictureIndex];
       if (picture.id && !picture.uploadPending) {
-        try {
-          axios.patch(`/${companyId}/gallery/${picture.id}/metadata`, {
-            metadata: { description: newDescription }
-          }).catch(error => {
-            console.error('Error updating file metadata:', error);
-          });
-        } catch (error) {
-          console.error('Error updating file metadata:', error);
-        }
+        // try {
+        //   axios.patch(`/${companyId}/gallery/${picture.id}/metadata`, {
+        //     metadata: { description: newDescription }
+        //   }).catch(error => {
+        //     console.error('Error updating file metadata:', error);
+        //   });
+        // } catch (error) {
+        //   console.error('Error updating file metadata:', error);
+        // }
       }
     }
   };

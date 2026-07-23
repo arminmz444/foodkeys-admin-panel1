@@ -24,7 +24,9 @@ function SpecializedInfoTab({
 	isLoadingSchema,
 	isCreateMode,
 	isDraft,
-	watchSubCategoryId
+	watchSubCategoryId,
+	externalErrors = {},
+	onClearExternalError
 }) {
 	const needsSubcategory = (isCreateMode || isDraft) && !watchSubCategoryId;
 
@@ -73,6 +75,8 @@ function SpecializedInfoTab({
 					onDataChange={onFormDataChange}
 					submitButtonLabel="ذخیره اطلاعات"
 					hideSubmitButton
+					externalErrors={externalErrors}
+					onClearExternalError={onClearExternalError}
 				/>
 			</Paper>
 		</Box>

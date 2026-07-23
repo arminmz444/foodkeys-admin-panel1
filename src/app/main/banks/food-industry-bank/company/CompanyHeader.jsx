@@ -21,7 +21,7 @@ import {
  */
 function CompanyHeader() {
 	const routeParams = useParams();
-	const { companyId } = routeParams;
+	const { categoryId, companyId } = routeParams;
 	const isNewCompany = companyId === 'new';
 
 	const [createCompany, { isLoading: isCreating }] = useCreateCompanyMutation();
@@ -74,7 +74,7 @@ function CompanyHeader() {
 			severity: 'success'
 		  });
 		  
-		  navigate(`/banks/food-industry/company/list`);
+		  navigate(`/banks/${categoryId}/company/list`);
 		} catch (error) {
 		  console.error('Error saving company:', error);
 		  setNotification({
@@ -118,7 +118,7 @@ function CompanyHeader() {
 	
 	  // Handle removing a company (e.g., navigate away without saving)
 	  const handleRemoveCompany = () => {
-		navigate('/banks/food-industry/company/list');
+		navigate(`/banks/${categoryId}/company/list`);
 	  };
 	  
 	  // Close notification
@@ -167,7 +167,7 @@ function CompanyHeader() {
 						className="flex items-center sm:mb-12"
 						component={Link}
 						role="button"
-						to="/banks/food-industry/company/list"
+						to={`/banks/${categoryId}/company/list`}
 						color="inherit"
 					>
 						<FuseSvgIcon size={20}>

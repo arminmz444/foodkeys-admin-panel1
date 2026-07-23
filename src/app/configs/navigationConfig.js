@@ -119,77 +119,19 @@ const navigationConfig = [
     subtitle: "All of the banks",
     type: "group",
     icon: "heroicons-outline:cube",
+    // NOTE: The COMPANY banks (e.g. food-industry, agriculture-industry) are
+    // injected dynamically from /api/v1/category/options by
+    // `useDynamicBanksNavigation`. Only the static Services bank (SERVICE type)
+    // is declared here.
     children: [
       {
-        id: "banks.food-industry-bank",
-        title: "FoodIndustryBank",
-        translate: "FOOD_INDUSTRY_BANK",
-        type: "collapse",
+        id: "banks.service-bank.list",
+        title: "ServiceBankList",
+        translate: "SERVICE_BANK",
+        type: "item",
+        url: "banks/service",
         icon: "heroicons-outline:shopping-cart",
-        children: [
-          {
-            id: "banks.food-industry-bank.list",
-            title: "FoodIndustryBankList",
-            translate: "COMPANY_LIST",
-            type: "item",
-            url: "banks/food-industry",
-            end: true,
-          },
-          {
-            id: "banks.food-industry-bank.requests",
-            title: "USER_REQUESTS",
-            translate: "USER_REQUESTS",
-            type: "item",
-            url: "banks/food-industry/request/list",
-          },
-          // {
-          //   id: "banks.food-industry-bank.archive",
-          //   title: "BANK_ARCHIVE",
-          //   translate: "BANK_ARCHIVE",
-          //   type: "item",
-          //   url: "banks/food-industry/archive",
-          // },
-        ],
-      },
-      {
-        id: "banks.agriculture-industry-bank",
-        title: "AgricultureIndustryBank",
-        translate: "AGRICULTURE_INDUSTRY_BANK",
-        type: "collapse",
-        icon: "heroicons-outline:shopping-cart",
-        children: [
-          {
-            id: "banks.agriculture-industry-bank.list",
-            title: "AgricultureIndustryBankList",
-            translate: "COMPANY_LIST",
-            type: "item",
-            url: "banks/agriculture-industry",
-            end: true,
-          },
-          {
-            id: "banks.agriculture-industry-bank.requests",
-            title: "USER_REQUESTS",
-            translate: "USER_REQUESTS",
-            type: "item",
-            url: "banks/agriculture-industry/request/list",
-          },
-          // {
-          //   id: "banks.agriculture-industry-bank.archive",
-          //   title: "BANK_ARCHIVE",
-          //   translate: "BANK_ARCHIVE",
-          //   type: "item",
-          //   url: "banks/agriculture-industry/archive",
-          // },
-        ],
-      },
-          {
-            id: "banks.service-bank.list",
-            title: "ServiceBankList",
-            translate: "SERVICE_BANK",
-            type: "item",
-            url: "banks/service",
-            icon: "heroicons-outline:shopping-cart",
-            end: true,
+        end: true,
       },
     ],
   },

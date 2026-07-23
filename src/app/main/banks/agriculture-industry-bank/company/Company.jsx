@@ -67,7 +67,10 @@ function Company() {
   const [tabValue, setTabValue] = useState(0);
   const methods = useForm({
     mode: "onChange",
-    defaultValues: {},
+    defaultValues: {
+      likes: 0,
+      dislikes: 0,
+    },
     resolver: zodResolver(schema),
   });
   const { reset, watch } = methods;
@@ -104,9 +107,12 @@ function Company() {
         fullAddress: location.fullAddress,
         commonName: location.commonName,
         status: company.status || 0,
+        likes: Math.max(0, parseInt(company.likes, 10) || 0),
+        dislikes: Math.max(0, parseInt(company.dislikes, 10) || 0),
       });
     }
-  }, [company, reset]);
+    // Only re-seed the form when switching companies — avoid wiping edits on refetch
+  }, [company?.id, reset]);
 
   /**
    * Tab Change

@@ -1,15 +1,15 @@
-// src/pages/ServiceRequests.jsx
+// Generic company requests page (per COMPANY category)
 import { useState, useEffect, useCallback } from 'react';
 import { debounce } from 'lodash';
+import { useParams } from 'react-router-dom';
 import FusePageSimple from '@fuse/core/FusePageSimple';
-import { 
-  Typography, 
-  IconButton, 
+import {
+  Typography,
+  IconButton,
   CircularProgress,
   Box,
   Tabs,
   Tab,
-  Chip,
   Paper,
   TextField,
   InputAdornment,
@@ -19,19 +19,19 @@ import { Filter, RefreshCw, Search, FileText, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { showMessage } from '@fuse/core/FuseMessage/fuseMessageSlice';
 import { useAppDispatch as useDispatch } from 'app/store/hooks';
-import FilterDrawer from './components/FilterDrawer';
-import RequestCard from './components/RequestCard';
-import EmptyState from './components/EmptyState';
-import { useGetServiceRequestsQuery } from '../ServicesBankApi';
+import FilterDrawer from '../../food-industry-bank/requests/components/FilterDrawer';
+import RequestCard from '../../food-industry-bank/requests/components/RequestCard';
+import EmptyState from '../../food-industry-bank/requests/components/EmptyState';
+import { useGetCompanyRequestsByCategoryQuery } from '../CompanyBankApi';
 
-export default function ServiceRequests() {
+export default function CompanyRequests() {
   const dispatch = useDispatch();
-  const [filters, setFilters] = useState({ 
-    status: null, 
-    type: null, 
-    search: '',
-    categoryId: null,
-    subCategoryId: null
+  const { categoryId } = useParams();
+
+  const [filters, setFilters] = useState({
+    status: null,
+    type: null,
+    search: ''
   });
   const [searchInput, setSearchInput] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -40,42 +40,40 @@ export default function ServiceRequests() {
     pageNumber: 1,
     pageSize: 12
   });
-  
+
   // State to accumulate all loaded items
   const [allRequests, setAllRequests] = useState([]);
   const [totalRequests, setTotalRequests] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    refetch, 
-    isFetching 
-  } = useGetServiceRequestsQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isFetching
+  } = useGetCompanyRequestsByCategoryQuery({
     ...pagination,
     ...filters,
+    categoryId,
     requestStatus: filters.status,
-    requestType: filters.type,
     sort: JSON.stringify({ createdAt: 'desc' }) // Default sorting by creation date
   });
 
-  // Reset pagination and clear accumulated data when filters change
+  // Reset pagination and clear accumulated data when filters or category change
   useEffect(() => {
     setPagination(prev => ({ ...prev, pageNumber: 1 }));
     setAllRequests([]);
     setTotalRequests(0);
     setTotalPages(0);
-  }, [filters]);
+  }, [filters, categoryId]);
 
   // Update accumulated data when new data arrives
   useEffect(() => {
     if (data) {
       if (pagination.pageNumber === 1) {
-        // First page - replace all data
         setAllRequests(data.data || []);
       } else {
-        // Subsequent pages - append new data, but avoid duplicates
         setAllRequests(prev => {
           const existingIds = new Set(prev.map(item => item.requestId));
           const newItems = (data.data || []).filter(item => !existingIds.has(item.requestId));
@@ -87,7 +85,6 @@ export default function ServiceRequests() {
     }
   }, [data, pagination.pageNumber]);
 
-  // Debounced search function
   const debouncedSearch = useCallback(
     debounce((searchValue) => {
       setFilters(prev => ({ ...prev, search: searchValue }));
@@ -95,7 +92,6 @@ export default function ServiceRequests() {
     []
   );
 
-  // Handle search input changes
   const handleSearchInputChange = ({ target: { value } }) => {
     setSearchInput(value);
     debouncedSearch(value);
@@ -106,7 +102,6 @@ export default function ServiceRequests() {
   };
 
   const handleSearch = () => {
-    // Cancel any pending debounced search and apply immediately
     debouncedSearch.cancel();
     setFilters(prev => ({ ...prev, search: searchInput }));
   };
@@ -118,7 +113,6 @@ export default function ServiceRequests() {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      // Cancel any pending debounced search and apply immediately
       debouncedSearch.cancel();
       setFilters(prev => ({ ...prev, search: searchInput }));
     }
@@ -126,14 +120,14 @@ export default function ServiceRequests() {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
-    
-    if (newValue === 0) { 
+
+    if (newValue === 0) {
       handleStatusChange(null);
-    } else if (newValue === 1) { 
+    } else if (newValue === 1) {
       handleStatusChange(1); // PENDING
-    } else if (newValue === 2) { 
+    } else if (newValue === 2) {
       handleStatusChange(2); // APPROVED
-    } else if (newValue === 3) { 
+    } else if (newValue === 3) {
       handleStatusChange(3); // REJECTED
     }
   };
@@ -147,7 +141,6 @@ export default function ServiceRequests() {
     }
   }, [error, dispatch]);
 
-  // Cleanup debounced function on unmount
   useEffect(() => {
     return () => {
       debouncedSearch.cancel();
@@ -161,20 +154,19 @@ export default function ServiceRequests() {
   };
 
   const requests = allRequests;
-
   const hasMore = totalPages > pagination.pageNumber;
 
   const header = (
     <div className="flex flex-col w-full">
       <div className="flex justify-between items-center px-24 py-16">
         <Typography variant="h5" className="font-semibold">
-          درخواست‌های سرویس
+          درخواست‌های شرکت
         </Typography>
         <div className="flex space-x-2">
           <IconButton onClick={() => setDrawerOpen(true)} size="small">
             <Filter />
           </IconButton>
-          <IconButton 
+          <IconButton
             onClick={() => refetch()}
             size="small"
             disabled={isLoading || isFetching}
@@ -187,10 +179,10 @@ export default function ServiceRequests() {
           </IconButton>
         </div>
       </div>
-      
+
       <Paper className="mx-24 mb-16 p-32 flex flex-col sm:flex-row items-center justify-between gap-2">
         <TextField
-          placeholder="جستجو در درخواست‌های سرویس..."
+          placeholder="جستجو در درخواست‌ها..."
           variant="outlined"
           size="small"
           value={searchInput}
@@ -213,7 +205,7 @@ export default function ServiceRequests() {
             )
           }}
         />
-        
+
         <div className="flex gap-2">
           <Button
             variant="outlined"
@@ -233,7 +225,7 @@ export default function ServiceRequests() {
           </Button>
         </div>
       </Paper>
-      
+
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -244,20 +236,12 @@ export default function ServiceRequests() {
         className="px-24 border-b border-gray-200"
       >
         <Tab label="همه" />
-        <Tab 
+        <Tab
           label={
             <div className="flex items-center">
               <span>در انتظار</span>
-              {/*{!isLoading && (*/}
-              {/*  <Chip */}
-              {/*    size="small" */}
-              {/*    label={allRequests?.filter(r => r.requestStatus === "PENDING").length || 0} */}
-              {/*    color="warning" */}
-              {/*    className="ml-2"*/}
-              {/*  />*/}
-              {/*)}*/}
             </div>
-          } 
+          }
         />
         <Tab label="تایید شده" />
         <Tab label="رد شده" />
@@ -277,8 +261,8 @@ export default function ServiceRequests() {
     if (error) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <EmptyState 
-            message="خطا در بارگذاری اطلاعات" 
+          <EmptyState
+            message="خطا در بارگذاری اطلاعات"
             onRefresh={refetch}
           />
         </Box>
@@ -287,9 +271,9 @@ export default function ServiceRequests() {
 
     if (requests.length === 0) {
       return (
-        <EmptyState 
-          message="هیچ درخواست سرویسی یافت نشد" 
-          onReset={() => setFilters({ status: null, type: null, search: '', categoryId: null, subCategoryId: null })}
+        <EmptyState
+          message="هیچ درخواستی یافت نشد"
+          onReset={() => setFilters({ status: null, type: null, search: '' })}
           onRefresh={refetch}
         />
       );
@@ -300,10 +284,8 @@ export default function ServiceRequests() {
         <Typography variant="body2" color="text.secondary" className="mb-4">
           نمایش {requests.length} درخواست از {totalRequests} درخواست
         </Typography>
-        
-        <div 
-          className="w-full flex justify-center"
-        >
+
+        <div className="w-full flex justify-center">
           <div
             style={{
               display: 'grid',
@@ -313,21 +295,21 @@ export default function ServiceRequests() {
             }}
           >
             {requests.map(request => (
-              <motion.div 
-                key={request.requestId} 
+              <motion.div
+                key={request.requestId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <RequestCard 
-                  request={request} 
+                <RequestCard
+                  request={request}
                   onActionComplete={refetch}
                 />
               </motion.div>
             ))}
           </div>
         </div>
-        
+
         {hasMore && (
           <Box display="flex" justifyContent="center" mt={4}>
             <Button
@@ -340,7 +322,7 @@ export default function ServiceRequests() {
             </Button>
           </Box>
         )}
-        
+
         {isFetching && allRequests.length > 0 && (
           <Box display="flex" justifyContent="center" mt={2}>
             <CircularProgress size={24} />
@@ -360,9 +342,9 @@ export default function ServiceRequests() {
 
   return (
     <>
-      <FusePageSimple 
-        header={header} 
-        content={content} 
+      <FusePageSimple
+        header={header}
+        content={content}
         className="bg-gray-50 min-h-screen"
       />
       <FilterDrawer

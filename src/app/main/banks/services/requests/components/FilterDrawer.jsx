@@ -1,5 +1,5 @@
 // src/components/FilterDrawer.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -16,11 +16,12 @@ import {
   CircularProgress
 } from '@mui/material';
 import { X, Filter, RotateCcw } from 'lucide-react';
+import { useGetCategoryOptionsQuery } from 'src/app/main/category/CategoriesApi';
 import { useGetServiceSubcategoryOptionsQuery } from '../../ServicesBankApi';
 
 // Request status options
 const requestStatusOptions = [
-  { value: null, label: 'همه وضعیت‌ها' },
+  { value: '', label: 'همه وضعیت‌ها' },
   { value: 0, label: 'ثبت اولیه' },
   { value: 1, label: 'در انتظار' },
   { value: 2, label: 'تایید شده' },
@@ -29,7 +30,7 @@ const requestStatusOptions = [
 
 // Request type options for services
 const requestTypeOptions = [
-  { value: null, label: 'همه درخواست‌ها' },
+  { value: '', label: 'همه درخواست‌ها' },
   { value: 1, label: 'درخواست ایجاد سرویس' },
   { value: 2, label: 'درخواست ویرایش سرویس' },
   { value: 3, label: 'درخواست حذف سرویس' },
@@ -39,61 +40,108 @@ const requestTypeOptions = [
   { value: 11, label: 'بررسی' }
 ];
 
+const EMPTY_FILTERS = {
+  status: null,
+  type: null,
+  search: '',
+  categoryId: '',
+  subCategoryId: ''
+};
+
 /**
  * FilterDrawer Component - Drawer for filtering service requests
- * 
- * @param {Object} props Component props
- * @param {boolean} props.open Whether the drawer is open
- * @param {Function} props.onClose Function to close the drawer
- * @param {Object} props.filters Current filter values
- * @param {Function} props.onApply Function to apply filters
- * @param {boolean} props.isLoading Whether the main component is loading
+ *
+ * Dynamically loads SERVICE categories from `/category/options`, then loads
+ * subcategories for the selected category via `/category/{categoryId}/subcategory`.
  */
 export default function FilterDrawer({ open, onClose, filters, onApply, isLoading }) {
-  // Local state for filters
-  const [localFilters, setLocalFilters] = useState({
-    status: null,
-    type: null,
-    search: '',
-    categoryId: 4 // Service category ID
+  const [localFilters, setLocalFilters] = useState({ ...EMPTY_FILTERS });
+
+  const {
+    data: categoryOptionsData,
+    isLoading: isCategoriesLoading
+  } = useGetCategoryOptionsQuery(
+    {
+      pageNumber: 1,
+      pageSize: 1000,
+      search: '',
+      sort: '',
+      filter: ''
+    },
+    { skip: !open }
+  );
+
+  const serviceCategories = useMemo(
+    () =>
+      (categoryOptionsData?.data || []).filter(
+        (option) => option?.dependantEntityType === 'SERVICE'
+      ),
+    [categoryOptionsData]
+  );
+
+  const selectedCategoryId = localFilters.categoryId;
+
+  const {
+    data: subcategories = [],
+    isLoading: isSubcategoriesLoading,
+    isFetching: isSubcategoriesFetching
+  } = useGetServiceSubcategoryOptionsQuery(selectedCategoryId, {
+    skip: !open || selectedCategoryId == null || selectedCategoryId === ''
   });
 
-  // Fetch subcategories for the dropdown using RTK Query
-  const { 
-    data: subcategories, 
-    isLoading: isSubcategoriesLoading 
-  } = useGetServiceSubcategoryOptionsQuery(undefined, {
-    // Skip fetching if drawer is closed
-    skip: !open
-  });
+  const subcategoryOptions = useMemo(() => {
+    if (!Array.isArray(subcategories)) {
+      return [];
+    }
 
-  // Update local filters when prop filters change
+    return subcategories.map((item) => ({
+      value: item.value ?? item.id ?? item.subCategoryId,
+      label: item.label ?? item.name ?? item.subCategoryDisplayName ?? String(item.value ?? item.id)
+    }));
+  }, [subcategories]);
+
   useEffect(() => {
     if (open) {
-      setLocalFilters(filters);
+      setLocalFilters({
+        ...EMPTY_FILTERS,
+        ...filters,
+        categoryId: filters?.categoryId ?? '',
+        subCategoryId: filters?.subCategoryId ?? '',
+        status: filters?.status ?? null,
+        type: filters?.type ?? null,
+        search: filters?.search ?? ''
+      });
     }
   }, [filters, open]);
 
-  // Handle input changes
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setLocalFilters(prev => ({ ...prev, [name]: value }));
+
+    setLocalFilters((prev) => {
+      const next = { ...prev, [name]: value };
+
+      // Changing category clears the dependent subcategory selection.
+      if (name === 'categoryId') {
+        next.subCategoryId = '';
+      }
+
+      return next;
+    });
   };
 
-  // Apply filters and close drawer
   const handleApply = () => {
-    onApply(localFilters);
+    onApply({
+      ...localFilters,
+      categoryId: localFilters.categoryId === '' ? null : localFilters.categoryId,
+      subCategoryId: localFilters.subCategoryId === '' ? null : localFilters.subCategoryId,
+      status: localFilters.status === '' ? null : localFilters.status,
+      type: localFilters.type === '' ? null : localFilters.type
+    });
     onClose();
   };
 
-  // Reset filters
   const handleReset = () => {
-    setLocalFilters({
-      status: null,
-      type: null,
-      search: '',
-      categoryId: 4
-    });
+    setLocalFilters({ ...EMPTY_FILTERS });
   };
 
   return (
@@ -134,15 +182,70 @@ export default function FilterDrawer({ open, onClose, filters, onApply, isLoadin
         />
 
         <FormControl fullWidth>
+          <InputLabel>دسته‌بندی سرویس</InputLabel>
+          <Select
+            name="categoryId"
+            value={localFilters.categoryId ?? ''}
+            onChange={handleChange}
+            label="دسته‌بندی سرویس"
+            disabled={isCategoriesLoading}
+            endAdornment={isCategoriesLoading && <CircularProgress size={20} sx={{ mr: 2 }} />}
+          >
+            <MenuItem value="">همه دسته‌بندی‌ها</MenuItem>
+            {serviceCategories.map((category) => (
+              <MenuItem key={`category-${category.value}`} value={category.value}>
+                {category.label}
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>فیلتر بر اساس دسته‌بندی سرویس</FormHelperText>
+        </FormControl>
+
+        <FormControl fullWidth>
+          <InputLabel>زیردسته سرویس</InputLabel>
+          <Select
+            name="subCategoryId"
+            value={localFilters.subCategoryId ?? ''}
+            onChange={handleChange}
+            label="زیردسته سرویس"
+            disabled={
+              !selectedCategoryId ||
+              isSubcategoriesLoading ||
+              isSubcategoriesFetching
+            }
+            endAdornment={
+              (isSubcategoriesLoading || isSubcategoriesFetching) && (
+                <CircularProgress size={20} sx={{ mr: 2 }} />
+              )
+            }
+          >
+            <MenuItem value="">همه زیردسته‌ها</MenuItem>
+            {subcategoryOptions.map((subcategory) => (
+              <MenuItem
+                key={`subcategory-${subcategory.value}`}
+                value={subcategory.value}
+              >
+                {subcategory.label}
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>
+            {!selectedCategoryId
+              ? 'ابتدا یک دسته‌بندی انتخاب کنید'
+              : 'فیلتر بر اساس زیردسته سرویس'}
+          </FormHelperText>
+        </FormControl>
+
+        <FormControl fullWidth>
           <InputLabel>وضعیت درخواست</InputLabel>
           <Select
             name="status"
-            value={localFilters.status}
+            value={localFilters.status ?? ''}
             onChange={handleChange}
             label="وضعیت درخواست"
           >
-            {requestStatusOptions.map(option => (
-              <MenuItem key={`status-${option.value || 'null'}`} value={option.value}>
+            {requestStatusOptions.map((option) => (
+              <MenuItem key={`status-${option.value === '' ? 'all' : option.value}`} value={option.value}>
                 {option.label}
               </MenuItem>
             ))}
@@ -154,37 +257,17 @@ export default function FilterDrawer({ open, onClose, filters, onApply, isLoadin
           <InputLabel>نوع درخواست</InputLabel>
           <Select
             name="type"
-            value={localFilters.type}
+            value={localFilters.type ?? ''}
             onChange={handleChange}
             label="نوع درخواست"
           >
-            {requestTypeOptions.map(option => (
-              <MenuItem key={`type-${option.value || 'null'}`} value={option.value}>
+            {requestTypeOptions.map((option) => (
+              <MenuItem key={`type-${option.value === '' ? 'all' : option.value}`} value={option.value}>
                 {option.label}
               </MenuItem>
             ))}
           </Select>
           <FormHelperText>فیلتر بر اساس نوع درخواست</FormHelperText>
-        </FormControl>
-
-        <FormControl fullWidth>
-          <InputLabel>زیردسته سرویس</InputLabel>
-          <Select
-            name="subCategoryId"
-            value={localFilters.subCategoryId || ''}
-            onChange={handleChange}
-            label="زیردسته سرویس"
-            disabled={isSubcategoriesLoading}
-            endAdornment={isSubcategoriesLoading && <CircularProgress size={20} sx={{ mr: 2 }} />}
-          >
-            <MenuItem value="">همه زیردسته‌ها</MenuItem>
-            {subcategories?.map(subcategory => (
-              <MenuItem key={`subcategory-${subcategory.id}`} value={subcategory.id}>
-                {subcategory.name}
-              </MenuItem>
-            ))}
-          </Select>
-          <FormHelperText>فیلتر بر اساس زیردسته سرویس</FormHelperText>
         </FormControl>
 
         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>

@@ -24,8 +24,14 @@ import WatermarkField from "src/app/shared-components/watermark/WatermarkField";
 
 function RegistrarTab() {
 	const methods = useFormContext();
-	const { control, formState } = methods;
+	const { control, formState, setValue } = methods;
 	const { errors } = formState;
+
+	const parseNonNegativeInt = (raw) => {
+		if (raw === '' || raw === null || raw === undefined) return 0;
+		const parsed = parseInt(String(raw), 10);
+		return Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
+	};
 	
 	// Watch for changes to hasPrivatePage and miniAppIframeSource
 	const hasPrivatePage = useWatch({
@@ -171,13 +177,16 @@ function RegistrarTab() {
 				<Controller
 					name="likes"
 					control={control}
-					render={({ field: { onChange, value, ...field } }) => (
+					defaultValue={0}
+					render={({ field }) => (
 						<TextField
-							{...field}
-							value={value ?? 0}
+							name={field.name}
+							inputRef={field.ref}
+							onBlur={field.onBlur}
+							value={field.value ?? 0}
 							onChange={(e) => {
-								const next = e.target.value === '' ? 0 : Number(e.target.value);
-								onChange(Number.isNaN(next) ? 0 : Math.max(0, next));
+								const next = parseNonNegativeInt(e.target.value);
+								setValue('likes', next, { shouldDirty: true, shouldTouch: true });
 							}}
 							type="number"
 							label="لایک"
@@ -194,13 +203,16 @@ function RegistrarTab() {
 				<Controller
 					name="dislikes"
 					control={control}
-					render={({ field: { onChange, value, ...field } }) => (
+					defaultValue={0}
+					render={({ field }) => (
 						<TextField
-							{...field}
-							value={value ?? 0}
+							name={field.name}
+							inputRef={field.ref}
+							onBlur={field.onBlur}
+							value={field.value ?? 0}
 							onChange={(e) => {
-								const next = e.target.value === '' ? 0 : Number(e.target.value);
-								onChange(Number.isNaN(next) ? 0 : Math.max(0, next));
+								const next = parseNonNegativeInt(e.target.value);
+								setValue('dislikes', next, { shouldDirty: true, shouldTouch: true });
 							}}
 							type="number"
 							label="دیسلایک"

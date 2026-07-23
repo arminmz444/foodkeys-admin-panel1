@@ -6,6 +6,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import { MenuItem } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import { BiMinus } from "react-icons/bi";
@@ -17,29 +18,41 @@ function BasicInfoTab() {
   const methods = useFormContext();
   const { control, formState, watch } = methods;
   const { errors } = formState;
+  const { categoryId: routeCategoryId } = useParams();
+  // Prefer the bank categoryId from the dynamic route (`banks/company/:categoryId/...`).
+  // Fall back to the company's own category, then to the legacy food-industry id (1).
+  const watchedCategoryId = watch("categoryId") ?? watch("category")?.value ?? watch("category")?.id;
+  const categoryId = routeCategoryId || watchedCategoryId || 1;
   const [subcategories, setSubcategories] = useState(methods.getValues("subcategories") || []);
   const [companyTypeOptions, setCompanyTypeOptions] = useState(methods.getValues("companyTypeOptions") || []);
   const [subCategory, setSubCategory] = useState(0);
   const [companyType, setCompanyType] = useState(0);
-  const [hasFetchedSubCategories, setHasFetchedSubCategories] = useState(false);
   const [hasFetchedCompanyTypes, setHasFetchedCompanyTypes] = useState(false);
   useEffect(() => {
+    if (!categoryId) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
     const fetchSubCategories = async () => {
       try {
-        const response = await axios.get(`/category/1/subcategory`);
-        if (response.data.status === "SUCCESS") {
-          setSubcategories(response.data.data);
-          methods.setValue("subcategories", response.data.data);
+        const response = await axios.get(`/category/${categoryId}/subcategory`);
+        if (!cancelled && response.data.status === "SUCCESS") {
+          setSubcategories(response.data.data || []);
+          methods.setValue("subcategories", response.data.data || []);
         }
       } catch (error) {
         console.error("Error fetching subcategories:", error);
       }
     };
-    if((!subcategories || subcategories.length === 0) && !hasFetchedSubCategories) {
-      fetchSubCategories();
-      setHasFetchedSubCategories(true);
-    }
-  }, []);
+
+    fetchSubCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId]);
   useEffect(() => {
     const fetchCompanyTypes = async () => {
       const response = await axios.get(`/client/panel/company/fetch/type`);

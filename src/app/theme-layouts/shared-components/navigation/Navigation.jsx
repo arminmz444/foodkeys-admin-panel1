@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from 'app/store/hooks';
 import useThemeMediaQuery from '@fuse/hooks/useThemeMediaQuery';
 import withSlices from 'app/store/withSlices';
+import useDynamicBanksNavigation from 'src/app/main/banks/company-bank/useDynamicBanksNavigation';
 import { navigationSlice, selectNavigation } from './store/navigationSlice';
 import { navbarCloseMobile } from '../navbar/navbarSlice';
 
@@ -12,6 +13,9 @@ function Navigation(props) {
 	const navigation = useAppSelector(selectNavigation);
 	const isMobile = useThemeMediaQuery((theme) => theme.breakpoints.down('lg'));
 	const dispatch = useAppDispatch();
+
+	// Dynamically build the "بانک‌ها" section from /api/v1/category/options.
+	useDynamicBanksNavigation();
 	return useMemo(() => {
 		function handleItemClick() {
 			if (isMobile) {

@@ -85,6 +85,10 @@ function CompanyGalleryTab() {
           if (groupedFiles.COMPANY_GALLERY_GIF) {
             setValue('companyGalleryGif', groupedFiles.COMPANY_GALLERY_GIF);
           }
+          
+          if (groupedFiles.COMPANY_GALLERY_OFFICE_ENVIRONMENT) {
+            setValue('companyGalleryOfficeEnvironment', groupedFiles.COMPANY_GALLERY_OFFICE_ENVIRONMENT);
+          }
         }
       } catch (err) {
         console.error('Error fetching gallery files:', err);
@@ -226,6 +230,17 @@ function CompanyGalleryTab() {
         allowedFileTypes="image/gif"
         description="یک تصویر متحرک (GIF) کوتاه به عنوان تیزر تبلیغاتی شرکت آپلود کنید."
         acceptMessage="فقط فایل‌های GIF مجاز هستند (حداکثر 1 فایل)"
+        companyId={companyId}
+      />
+      
+      <FileSection
+        title="گالری فضای اداری"
+        fieldName="companyGalleryOfficeEnvironment"
+        fileServiceType="COMPANY_GALLERY_OFFICE_ENVIRONMENT"
+        maxFiles={5}
+        allowedFileTypes="image/*"
+        description="تصاویر محیط و فضای اداری شرکت را در این قسمت آپلود کنید."
+        acceptMessage="فقط فایل‌های تصویری مجاز هستند (حداکثر 5 فایل)"
         companyId={companyId}
       />
     </motion.div>

@@ -25,8 +25,10 @@ function Services() {
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
 
-  const { data: subcategoryOptionsData } = useGetServiceSubcategoryOptionsQuery();
-  const subcategoryOptions = subcategoryOptionsData?.data || [];
+  const { data: subcategoryOptionsData } = useGetServiceSubcategoryOptionsQuery(4);
+  const subcategoryOptions = Array.isArray(subcategoryOptionsData)
+    ? subcategoryOptionsData
+    : subcategoryOptionsData?.data || [];
   const { data: responseData, isLoading, isFetching } = useGetServicesQuery({
     pageSize: PAGE_SIZE,
     pageNumber: currentPage,

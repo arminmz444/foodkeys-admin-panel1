@@ -435,6 +435,8 @@ const FoodIndustryBankApi = api
       subCompanyIds: data.subCompanyIds,
       ranking: data.ranking,
       rankingAll: data.rankingAll,
+      likes: Math.max(0, parseInt(data.likes, 10) || 0),
+      dislikes: Math.max(0, parseInt(data.dislikes, 10) || 0),
       status: data.status,
       // Company description fields
       primaryBrand: data.mainBrand,
@@ -609,6 +611,7 @@ const FoodIndustryBankApi = api
     processFileCategory(galleryFiles, data.companyGallerySlider, "COMPANY_GALLERY_SLIDER");
     processFileCategory(galleryFiles, data.companyGalleryVideo, "COMPANY_GALLERY_VIDEO");
     processFileCategory(galleryFiles, data.companyGalleryGif, "COMPANY_GALLERY_GIF");
+    processFileCategory(galleryFiles, data.companyGalleryOfficeEnvironment, "COMPANY_GALLERY_OFFICE_ENVIRONMENT");
     
     return galleryFiles;
   }

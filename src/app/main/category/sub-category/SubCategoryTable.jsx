@@ -234,7 +234,7 @@ const citiesList = [
 
 
 const loadCategories = async () => {
-  const result = await axios.get("/category/options"); // TODO: Use category options endpoint (create if not exists)
+  const result = await axios.get("/category/options?pageSize=9999999"); // TODO: Use category options endpoint (create if not exists)
   const data = result?.data?.data || [];
 
   const res = data.map((d) => {

@@ -98,11 +98,14 @@ export const serviceApi = api
         providesTags: ["subcategoryOptions"],
       }),
       getServiceSubcategoryOptions: build.query({
-        query: () => ({
-          url: "/category/4/subcategory",
-          transformResponse: (response) => response?.data,
+        query: (categoryId) => ({
+          url: `/category/${categoryId || 4}/subcategory`,
+          method: "GET",
         }),
-        providesTags: ["ServiceSubcategoryOptions"],
+        transformResponse: (response) => response?.data || [],
+        providesTags: (result, error, categoryId) => [
+          { type: "ServiceSubcategoryOptions", id: categoryId || 4 },
+        ],
       }),
   
     // getServices: build.query({
@@ -177,17 +180,30 @@ export const serviceApi = api
 
     // Service Request endpoints
     getServiceRequests: build.query({
-      query: ({ pageNumber = 1, pageSize, search, sort, filter, categoryId, requestStatus }) => ({
+      query: ({
+        pageNumber = 1,
+        pageSize,
+        search,
+        sort,
+        filter,
+        categoryId,
+        subCategoryId,
+        requestStatus,
+        requestType,
+        type,
+      }) => ({
         url: `/request/service`,
         method: 'GET',
         params: {
           pageNumber: pageNumber !== 0 ? pageNumber : 1,
           pageSize: pageSize || 10,
           search: search || '',
-          categoryId: categoryId || 4, // Service category ID
+          ...(categoryId != null && categoryId !== '' ? { categoryId } : {}),
+          ...(subCategoryId != null && subCategoryId !== '' ? { subCategoryId } : {}),
           sort: (sort && Object.entries(sort)?.length && JSON.stringify(sort)) || '',
           filter: (filter && Object.entries(filter)?.length && JSON.stringify(filter)) || '',
-          requestStatus: requestStatus || ''
+          requestStatus: requestStatus || '',
+          requestType: requestType ?? type ?? '',
         }
       }),
       transformResponse: (response) => {

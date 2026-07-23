@@ -133,6 +133,7 @@ const CompanyModel = (data) => {
     companyGallerySlider: data?.companyGallerySlider || [],
     companyGalleryVideo: data?.companyGalleryVideo || [],
     companyGalleryGif: data?.companyGalleryGif || [],
+    companyGalleryOfficeEnvironment: data?.companyGalleryOfficeEnvironment || [],
     galleryFiles: data?.galleryFiles || [],
     
     // Registration info

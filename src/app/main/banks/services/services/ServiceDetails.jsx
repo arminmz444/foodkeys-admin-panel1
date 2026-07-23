@@ -105,6 +105,42 @@ function toStringList(value) {
 	return [];
 }
 
+/**
+ * Maps backend FIELD_VALIDATION_ERROR items to main-form vs specialized (data.*) fields.
+ * Specialized payload lives under `data` and is rendered by FormPreview with flat field names.
+ */
+function mapBackendValidationErrors(apiError) {
+	const specializedErrors = {};
+	const mainFormErrors = {};
+
+	if (!Array.isArray(apiError)) {
+		return { specializedErrors, mainFormErrors };
+	}
+
+	apiError.forEach((item) => {
+		if (!item || typeof item !== 'object') return;
+
+		const message = item.message || 'خطای اعتبارسنجی';
+		const formikField = typeof item.formikField === 'string' ? item.formikField : '';
+		const field = typeof item.field === 'string' ? item.field : '';
+
+		if (formikField.startsWith('data.')) {
+			const specializedField = field || formikField.slice('data.'.length);
+			if (specializedField) {
+				specializedErrors[specializedField] = message;
+			}
+			return;
+		}
+
+		const mainField = formikField || field;
+		if (mainField) {
+			mainFormErrors[mainField] = message;
+		}
+	});
+
+	return { specializedErrors, mainFormErrors };
+}
+
 function ServiceDetails() {
 	const { id } = useParams();
 	const navigate = useNavigate();
@@ -125,6 +161,7 @@ function ServiceDetails() {
 	const [isLoadingSchema, setIsLoadingSchema] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+	const [specializedFieldErrors, setSpecializedFieldErrors] = useState({});
 
 	const { data: serviceFromApi, isLoading: apiLoading } = useGetServiceByIdQuery(id, {
 		skip: isCreateMode || isDraft
@@ -142,6 +179,8 @@ function ServiceDetails() {
 		register,
 		handleSubmit,
 		setValue,
+		setError: setFormError,
+		clearErrors: clearFormErrors,
 		watch,
 		reset
 	} = methods;
@@ -190,6 +229,15 @@ function ServiceDetails() {
 
 	const handleFormDataChange = (data) => {
 		setServiceFormData(data);
+	};
+
+	const handleClearSpecializedFieldError = (fieldName) => {
+		setSpecializedFieldErrors((prev) => {
+			if (!prev?.[fieldName]) return prev;
+			const next = { ...prev };
+			delete next[fieldName];
+			return next;
+		});
 	};
 
 	const handleTabChange = (event, value) => {
@@ -241,6 +289,7 @@ function ServiceDetails() {
 		if ((isCreateMode || isDraft) && watchSubCategoryId && watchSubCategoryId !== selectedSubcategory) {
 			setSelectedSubcategory(watchSubCategoryId);
 			setServiceFormData({});
+			setSpecializedFieldErrors({});
 			fetchSubCategorySchema(watchSubCategoryId);
 		}
 	}, [watchSubCategoryId, isCreateMode, isDraft, selectedSubcategory]);
@@ -397,6 +446,10 @@ function ServiceDetails() {
 
 	const onSubmit = async (data) => {
 		try {
+			setSpecializedFieldErrors({});
+			clearFormErrors();
+			setError(null);
+
 			const payload = buildServicePayload(data);
 
 			if (isDraft) {
@@ -434,8 +487,40 @@ function ServiceDetails() {
 			}
 		} catch (err) {
 			console.error('Operation failed:', err);
-			setError(isCreateMode || isDraft ? 'خطا در ایجاد سرویس' : 'خطا در به‌روزرسانی سرویس');
-			showNotification(isCreateMode || isDraft ? 'خطا در ایجاد سرویس' : 'خطا در به‌روزرسانی سرویس', 'error');
+
+			const apiError = err?.apiError || err?.data?.error || err?.error;
+			const apiMessage =
+				err?.apiMessage ||
+				err?.data?.message ||
+				err?.message ||
+				(isCreateMode || isDraft ? 'خطا در ایجاد سرویس' : 'خطا در به‌روزرسانی سرویس');
+
+			const { specializedErrors, mainFormErrors } = mapBackendValidationErrors(apiError);
+			const hasFieldErrors =
+				Object.keys(specializedErrors).length > 0 || Object.keys(mainFormErrors).length > 0;
+
+			if (hasFieldErrors) {
+				setSpecializedFieldErrors(specializedErrors);
+
+				Object.entries(mainFormErrors).forEach(([fieldName, message]) => {
+					setFormError(fieldName, { type: 'server', message });
+				});
+
+				if (Object.keys(specializedErrors).length > 0) {
+					setTabValue(1);
+				} else if (Object.keys(mainFormErrors).length > 0) {
+					setTabValue(0);
+				}
+
+				setError(apiMessage || 'خطای اعتبارسنجی اطلاعات ارسالی');
+				showNotification(apiMessage || 'خطای اعتبارسنجی اطلاعات ارسالی', 'error');
+			} else {
+				setError(apiMessage || (isCreateMode || isDraft ? 'خطا در ایجاد سرویس' : 'خطا در به‌روزرسانی سرویس'));
+				showNotification(
+					apiMessage || (isCreateMode || isDraft ? 'خطا در ایجاد سرویس' : 'خطا در به‌روزرسانی سرویس'),
+					'error'
+				);
+			}
 		}
 	};
 
@@ -612,6 +697,8 @@ function ServiceDetails() {
 								isCreateMode={isCreateMode}
 								isDraft={isDraft}
 								watchSubCategoryId={watchSubCategoryId}
+								externalErrors={specializedFieldErrors}
+								onClearExternalError={handleClearSpecializedFieldError}
 							/>
 						)}
 

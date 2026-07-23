@@ -133,6 +133,7 @@ const CompanyModel = (data) => {
     companyGallerySlider: data?.companyGallerySlider || [],
     companyGalleryVideo: data?.companyGalleryVideo || [],
     companyGalleryGif: data?.companyGalleryGif || [],
+    companyGalleryOfficeEnvironment: data?.companyGalleryOfficeEnvironment || [],
     galleryFiles: data?.galleryFiles || [],
     
     // Registration info
@@ -145,7 +146,7 @@ const CompanyModel = (data) => {
     userId: data?.userId || null,
     
     // Status and metrics
-    status: data?.status || "PENDING",
+    status: data?.status || 0,
     visit: data?.visit || 0,
     ranking: data?.ranking || 0,
     rankingAll: data?.rankingAll || 0,

@@ -100,7 +100,13 @@ const CategoryApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
         data: rest,
       }),
       transformResponse: (response) => response?.data,
-      invalidatesTags: (result, error, { id }) => [{ type: "Category", id }],
+      // Invalidate both the individual category and the LIST tag so that the
+      // cached `/category/options` result (used to build the Banks navigation)
+      // is refetched when a category is updated.
+      invalidatesTags: (result, error, arg) => [
+        { type: "Category", id: arg?.id },
+        { type: "Category", id: "LIST" },
+      ],
     }),
 
     // DELETE /category/{id} => delete existing category
@@ -110,8 +116,11 @@ const CategoryApi = api.enhanceEndpoints({ addTagTypes }).injectEndpoints({
         method: "DELETE",
       }),
       transformResponse: (response) => response?.data,
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Category", id },
+      // Invalidate the LIST tag as well so the Banks navigation rebuilds after
+      // a category is removed.
+      invalidatesTags: (result, error, arg) => [
+        { type: "Category", id: typeof arg === "object" ? arg?.id : arg },
+        { type: "Category", id: "LIST" },
       ],
     }),
   }),

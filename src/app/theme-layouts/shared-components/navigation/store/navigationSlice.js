@@ -3,6 +3,7 @@ import {
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
+import _ from "@lodash";
 import { selectUserRole } from "src/app/auth/user/store/userSlice";
 import FuseNavigationHelper from "@fuse/utils/FuseNavigationHelper";
 import i18next from "i18next";
@@ -83,6 +84,46 @@ export const updateNavigationItem =
     dispatch(
       setNavigation(FuseNavigationHelper.updateNavItem(navigation, id, item))
     );
+    return Promise.resolve();
+  };
+/**
+ * Rebuilds the children of the "banks" navigation group from the dynamically
+ * generated COMPANY category collapses, while preserving every non-dynamic
+ * child (e.g. the static Services bank item).
+ *
+ * Dynamic company items are identified by an id that starts with
+ * "banks.company.".
+ */
+export const setBanksCompanyNavigation =
+  (companyChildren = []) =>
+  async (dispatch, getState) => {
+    const AppState = getState();
+    const navigation = FuseNavigationHelper.unflattenNavigation(
+      selectNavigationAll(AppState)
+    );
+
+    const banksGroup = navigation.find((group) => group.id === "banks");
+
+    if (!banksGroup) {
+      return Promise.resolve();
+    }
+
+    const staticChildren = (banksGroup.children || []).filter(
+      (child) => !String(child.id).startsWith("banks.company.")
+    );
+
+    const nextChildren = [...companyChildren, ...staticChildren];
+
+    // Avoid dispatching (and re-rendering) when nothing actually changed.
+    if (_.isEqual(banksGroup.children, nextChildren)) {
+      return Promise.resolve();
+    }
+
+    const nextNavigation = navigation.map((group) =>
+      group.id === "banks" ? { ...group, children: nextChildren } : group
+    );
+
+    dispatch(setNavigation(nextNavigation));
     return Promise.resolve();
   };
 /**
