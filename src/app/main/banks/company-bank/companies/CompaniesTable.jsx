@@ -11,6 +11,7 @@ import { getCompanyStatusBadgeStyle } from "app/shared-components/data-table/com
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon/index.js";
 import { useGetCompaniesByCategoryQuery } from "../CompanyBankApi";
 import CompanyLocationModal, { hasCompanyLocationData } from "../../food-industry-bank/companies/CompanyLocationModal.jsx";
+import companyAdvancedFilterConfig from "app/shared-components/advanced-filters/configs/companyFilterConfig.js";
 
 const CONTAINS_FILTER_FIELDS = new Set(["province", "city", "location"]);
 
@@ -317,6 +318,7 @@ function CompaniesTable() {
 						enableEditing={false}
 						enableBuiltInEditing={false}
 						transformColumnFilters={transformCompanyColumnFilters}
+						advancedFilterConfig={companyAdvancedFilterConfig}
 					/>
 				</Paper>
 			</FuseScrollbars>

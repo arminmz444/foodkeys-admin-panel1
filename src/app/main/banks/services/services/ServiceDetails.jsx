@@ -453,29 +453,15 @@ function ServiceDetails() {
 			const payload = buildServicePayload(data);
 
 			if (isDraft) {
-				const created = await createService(payload).unwrap();
+				await createService(payload).unwrap();
 				showNotification('سرویس با موفقیت ایجاد شد!');
 
 				const drafts = JSON.parse(localStorage.getItem('draftServices')) || [];
 				const updatedDrafts = drafts.filter((draft) => draft.id !== id);
 				localStorage.setItem('draftServices', JSON.stringify(updatedDrafts));
-
-				const createdId = created?.data?.id || created?.id;
-				if (createdId) {
-					navigate(`/banks/service/${createdId}/details`);
-				} else {
-					navigate('/banks/service');
-				}
 			} else if (isCreateMode) {
-				const created = await createService(payload).unwrap();
+				await createService(payload).unwrap();
 				showNotification('سرویس با موفقیت ایجاد شد!');
-
-				const createdId = created?.data?.id || created?.id;
-				if (createdId) {
-					navigate(`/banks/service/${createdId}/details`);
-				} else {
-					navigate('/banks/service');
-				}
 			} else {
 				const updatedService = {
 					...payload,
@@ -485,6 +471,8 @@ function ServiceDetails() {
 				await updateService({ id: serviceFromApi.id, service: updatedService }).unwrap();
 				showNotification('سرویس با موفقیت بروزرسانی شد');
 			}
+
+			navigate('/banks/service');
 		} catch (err) {
 			console.error('Operation failed:', err);
 

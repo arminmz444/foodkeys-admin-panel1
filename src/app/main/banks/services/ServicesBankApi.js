@@ -29,11 +29,11 @@ export const serviceApi = api
         providesTags: [{ type: "Services", id: "SERVICE_ALL_SUBCATEGORIES" }],
       }),
       getServices: build.query({
-        query: ({ pageNumber = 0, pageSize = 10, search = "", filters = {} }) => {
+        query: ({ pageNumber = 0, pageSize = 10, search = "", filters = {}, filter = [] }) => {
           // console.log('API Query called with params:', { pageNumber, pageSize, search, filters });
-          const params = { pageNumber, pageSize, search };
-          
-          // Add filter parameters
+          const params = {};
+
+          // Add optional named filter parameters (legacy ServiceFilterDrawer)
           if (filters.name) params.name = filters.name;
           if (filters.description) params.description = filters.description;
           if (filters.subCategoryId) params.subCategoryId = filters.subCategoryId;
@@ -43,17 +43,34 @@ export const serviceApi = api
           if (filters.tags) params.tags = filters.tags;
           if (filters.status !== undefined && filters.status !== null) params.status = filters.status;
           if (filters.visit) params.visit = filters.visit;
-          
+
+          // Match company list encoding: fully URL-encode the JSON filter array
+          // e.g. filter=%5B%22galleryFiles.SERVICE_GALLERY_SLIDER%3AIS_EMPTY%22%5D
+          const filterParam =
+            Array.isArray(filter) && filter.length
+              ? encodeURIComponent(JSON.stringify(filter))
+              : "";
+
+          const extraParams = Object.entries(params)
+            .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
+            .join("");
+
           return {
-            url: "/service",
+            url:
+              `/service?pageNumber=${pageNumber}` +
+              `&pageSize=${pageSize}` +
+              `&search=${encodeURIComponent(search ?? "")}` +
+              `&filter=${filterParam}` +
+              extraParams,
+            method: "GET",
             transformResponse: (response) => response?.data,
-            params,
           };
         },
-        providesTags: (result, error, { search, filters }) => [
+        providesTags: (result, error, { search, filters, filter }) => [
           { type: "Services", id: "LIST" },
           { type: "Services", id: `SEARCH_${search || 'empty'}` },
-          { type: "Services", id: `FILTERS_${JSON.stringify(filters || {})}` }
+          { type: "Services", id: `FILTERS_${JSON.stringify(filters || {})}` },
+          { type: "Services", id: `ADVFILTERS_${JSON.stringify(filter || [])}` }
         ],
       }),
       getServiceById: build.query({

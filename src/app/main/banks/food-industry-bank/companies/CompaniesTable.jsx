@@ -9,6 +9,7 @@ import { API_STATIC_FILES_BASE_URL } from "app/store/apiService.js";
 import EntityStatusField from "app/shared-components/data-table/EntityStatusField.jsx";
 import { getCompanyStatusBadgeStyle } from "app/shared-components/data-table/companyStatusColors.js";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon/index.js";
+import { companyAdvancedFilterConfig } from "app/shared-components/advanced-filters/configs/companyFilterConfig.js";
 import { useGetAllFoodIndustryCompaniesQuery } from "../FoodIndustryBankApi";
 import {
 	useCreateCategoryMutation,
@@ -320,6 +321,7 @@ function CompaniesTable() {
 						// enableColumnFilters
 						// columnFilterDisplayMode="popover"
 						transformColumnFilters={transformCompanyColumnFilters}
+						advancedFilterConfig={companyAdvancedFilterConfig}
 						// initialState={{
 						// 	showColumnFilters: false,
 						// 	showGlobalFilter: true,

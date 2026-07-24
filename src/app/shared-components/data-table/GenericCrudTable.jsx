@@ -33,6 +33,12 @@ import {
 import DialogContentText from "@mui/material/DialogContentText";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import IconButton from "@mui/material/IconButton";
+import AdvancedFilters from "app/shared-components/advanced-filters/AdvancedFilters.jsx";
+import AdvancedFilterChips from "app/shared-components/advanced-filters/AdvancedFilterChips.jsx";
+import {
+	buildFieldConfigMap,
+	buildFilterQuery,
+} from "app/shared-components/advanced-filters/buildFilterQuery.js";
 import DataTableTopToolbar from "./DataTableTopToolbar";
 
 const tableIcons = {
@@ -190,6 +196,9 @@ function GenericCrudTable(props) {
 		enableBuiltInEditing = true,
 		transformColumnFilters,
 		globalFilterColumns,
+		advancedFilterConfig = null,
+		advancedFilterVariant = "drawer",
+		advancedFilterButtonLabel = "فیلترهای پیشرفته",
 		// serviceIdentifier = "",
 		// requiredQueryParams,
 		// requiredPathVariables,
@@ -197,6 +206,19 @@ function GenericCrudTable(props) {
 	} = props;
 
 	const dispatch = useDispatch();
+
+	const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+	const [advancedFilterRows, setAdvancedFilterRows] = useState([]);
+
+	const advancedFieldMap = useMemo(
+		() => (advancedFilterConfig ? buildFieldConfigMap(advancedFilterConfig) : {}),
+		[advancedFilterConfig]
+	);
+
+	const { filterStrings: advancedFilterStrings, params: advancedParams } = useMemo(
+		() => buildFilterQuery(advancedFilterRows, advancedFieldMap),
+		[advancedFilterRows, advancedFieldMap]
+	);
 
 	const [columnFilters, setColumnFilters] = useState([]);
 	const [columnFilterFns, setColumnFilterFns] = useState({});
@@ -212,6 +234,13 @@ function GenericCrudTable(props) {
 		const transformer = transformColumnFilters || defaultTransformColumnFilters;
 		return transformer(columnFilters, { columnFilterFns });
 	}, [columnFilters, columnFilterFns, transformColumnFilters]);
+
+	// Column filters (from the table header) + advanced filters (from the drawer)
+	// are merged into the single `filter` array sent to the API.
+	const combinedFilters = useMemo(
+		() => [...transformedFilters, ...advancedFilterStrings],
+		[transformedFilters, advancedFilterStrings]
+	);
 	// const handleGlobalFilterChange = useCallback(
 	// 	(val) => setGlobalFilter(val),
 	// 	[]
@@ -250,8 +279,11 @@ function GenericCrudTable(props) {
 			pageSize: paginationState.pageSize,
 			search: globalFilter,
 			sort: sorting,
-			filter: transformedFilters,
+			filter: combinedFilters,
 			globalFilterColumns,
+			// Advanced-filter fields flagged with their own `param` name are spread
+			// here so API hooks that read standalone query params keep working.
+			...advancedParams,
 			// serviceIdentifier,
 			// requiredQueryParams,
 			// requiredPathVariables
@@ -528,6 +560,15 @@ function GenericCrudTable(props) {
 		);
 	};
 
+	const handleApplyAdvancedFilters = (rows) => {
+		setAdvancedFilterRows(rows);
+		setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+	};
+	const handleRemoveAdvancedFilter = (field) => {
+		setAdvancedFilterRows((prev) => prev.filter((r) => r.field !== field));
+	};
+	const handleClearAdvancedFilters = () => setAdvancedFilterRows([]);
+
 	const defaults = useMemo(
 		() =>
 			_.defaults(rest, {
@@ -795,6 +836,26 @@ function GenericCrudTable(props) {
 								</div>
 							)}
 
+							{advancedFilterConfig && (
+								<div className="flex justify-start py-16 px-8">
+									<Button
+										variant="outlined"
+										color="secondary"
+										onClick={() => setAdvancedFilterOpen(true)}
+										startIcon={
+											<FuseSvgIcon size={20}>
+												heroicons-outline:adjustments
+											</FuseSvgIcon>
+										}
+									>
+										{advancedFilterButtonLabel}
+										{advancedFilterRows.length > 0
+											? ` (${advancedFilterRows.length})`
+											: ""}
+									</Button>
+								</div>
+							)}
+
 							{/* {createItemProps && ( */}
 							{/*	<div className="flex justify-start py-16 px-8"> */}
 							{/*		<Button */}
@@ -845,6 +906,9 @@ function GenericCrudTable(props) {
 			sorting,
 			paginationState,
 			setGlobalFilter,
+			advancedFilterConfig,
+			advancedFilterRows,
+			advancedFilterButtonLabel,
 		] // handleGlobalFilterChange]
 	);
 
@@ -911,6 +975,28 @@ function GenericCrudTable(props) {
 			}}
 			className="w-full max-w-screen flex flex-col h-full overflow-auto"
 		>
+			{advancedFilterConfig && advancedFilterRows.length > 0 && (
+				<div className="px-16 pt-12">
+					<AdvancedFilterChips
+						config={advancedFilterConfig}
+						rows={advancedFilterRows}
+						onRemove={handleRemoveAdvancedFilter}
+						onClearAll={handleClearAdvancedFilters}
+					/>
+				</div>
+			)}
+
+			{advancedFilterConfig && (
+				<AdvancedFilters
+					config={advancedFilterConfig}
+					open={advancedFilterOpen}
+					onClose={() => setAdvancedFilterOpen(false)}
+					value={advancedFilterRows}
+					onApply={handleApplyAdvancedFilters}
+					variant={advancedFilterVariant}
+				/>
+			)}
+
 			<MaterialReactTable
 				table={table}
 				enablePagination

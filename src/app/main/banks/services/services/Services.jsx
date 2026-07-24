@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Typography from '@mui/material/Typography';
 import { motion, AnimatePresence } from 'framer-motion';
 import FuseLoading from '@fuse/core/FuseLoading';
@@ -7,11 +7,17 @@ import { Input, Fab, CircularProgress, Zoom } from '@mui/material';
 import _ from '@lodash';
 import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
 import FuseUtils from '@fuse/utils';
+import AdvancedFilters from 'app/shared-components/advanced-filters/AdvancedFilters.jsx';
+import AdvancedFilterChips from 'app/shared-components/advanced-filters/AdvancedFilterChips.jsx';
+import { buildFieldConfigMap, buildFilterQuery } from 'app/shared-components/advanced-filters/buildFilterQuery.js';
+import { serviceAdvancedFilterConfig } from 'app/shared-components/advanced-filters/configs/serviceFilterConfig.js';
 import ServiceItem from '../components/ServiceItem';
 import NewServiceItem from '../components/NewServiceItem';
 import ServiceFilterDrawer from '../components/ServiceFilterDrawer';
 import ActiveFilters from '../components/ActiveFilters';
 import { useGetServicesQuery, useGetServiceSubcategoryOptionsQuery } from '../ServicesBankApi';
+
+const serviceFilterFieldMap = buildFieldConfigMap(serviceAdvancedFilterConfig);
 
 const PAGE_SIZE = 10;
 
@@ -19,6 +25,8 @@ function Services() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filterParams, setFilterParams] = useState({});
+  const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+  const [advancedFilterRows, setAdvancedFilterRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [accumulatedServices, setAccumulatedServices] = useState([]);
   const [showFab, setShowFab] = useState(false);
@@ -29,11 +37,19 @@ function Services() {
   const subcategoryOptions = Array.isArray(subcategoryOptionsData)
     ? subcategoryOptionsData
     : subcategoryOptionsData?.data || [];
+
+  const { filterStrings: advancedFilterStrings, params: advancedFilterParams } = useMemo(
+    () => buildFilterQuery(advancedFilterRows, serviceFilterFieldMap),
+    [advancedFilterRows]
+  );
+
   const { data: responseData, isLoading, isFetching } = useGetServicesQuery({
     pageSize: PAGE_SIZE,
     pageNumber: currentPage,
     search: debouncedSearchQuery,
     filters: filterParams,
+    filter: advancedFilterStrings,
+    ...advancedFilterParams,
   });
 
   const apiServices = responseData?.data || [];
@@ -63,7 +79,7 @@ function Services() {
   useEffect(() => {
     setCurrentPage(1);
     setAccumulatedServices([]);
-  }, [debouncedSearchQuery, filterParams]);
+  }, [debouncedSearchQuery, filterParams, advancedFilterRows]);
 
   const [draftServices, setDraftServices] = useState(() => {
     return JSON.parse(localStorage.getItem('draftServices')) || [];
@@ -172,6 +188,11 @@ function Services() {
     setFilterParams(filters);
   };
 
+  const handleApplyAdvancedFilters = (rows) => setAdvancedFilterRows(rows);
+  const handleRemoveAdvancedFilter = (field) =>
+    setAdvancedFilterRows((prev) => prev.filter((r) => r.field !== field));
+  const handleClearAdvancedFilters = () => setAdvancedFilterRows([]);
+
   const handleRemoveFilter = (filterKey) => {
     const newFilters = { ...filterParams };
     delete newFilters[filterKey];
@@ -212,6 +233,18 @@ function Services() {
           <Button variant="contained" color="primary" onClick={handleOpenFilter}>
             فیلترها
           </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            className="ms-4"
+            onClick={() => setAdvancedFilterOpen(true)}
+            startIcon={
+              <FuseSvgIcon size={20}>heroicons-outline:adjustments</FuseSvgIcon>
+            }
+          >
+            فیلترهای پیشرفته
+            {advancedFilterRows.length > 0 ? ` (${advancedFilterRows.length})` : ''}
+          </Button>
         </div>
         {draftServices.length > 0 && (
           <Button variant="outlined" color="error" onClick={handleClearDrafts} className="mt-4 ms-4 sm:mt-0">
@@ -226,11 +259,27 @@ function Services() {
         onClearAll={handleClearAllFilters}
       />
 
+      <AdvancedFilterChips
+        config={serviceAdvancedFilterConfig}
+        rows={advancedFilterRows}
+        onRemove={handleRemoveAdvancedFilter}
+        onClearAll={handleClearAdvancedFilters}
+      />
+
       <ServiceFilterDrawer
         open={filterOpen}
         onClose={handleCloseFilter}
         onApplyFilters={handleApplyFilters}
         subcategoryOptions={subcategoryOptions || []}
+      />
+
+      <AdvancedFilters
+        config={serviceAdvancedFilterConfig}
+        open={advancedFilterOpen}
+        onClose={() => setAdvancedFilterOpen(false)}
+        value={advancedFilterRows}
+        onApply={handleApplyAdvancedFilters}
+        variant="drawer"
       />
 
       {/* Pagination info */}

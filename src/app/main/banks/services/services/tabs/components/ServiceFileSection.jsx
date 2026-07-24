@@ -200,11 +200,11 @@ function ServiceFileSection({
 		syncPath(newFiles);
 
 		if (fileToRemove.id && !fileToRemove.uploadPending && !fileToRemove.uploadError && serviceId) {
-			try {
-				await axios.delete(`/service/${serviceId}/file/${fileToRemove.id}`);
-			} catch (error) {
-				console.error('Error deleting file:', error);
-			}
+			// try {
+			// 	await axios.delete(`/service/${serviceId}/file/${fileToRemove.id}`);
+			// } catch (error) {
+			// 	console.error('Error deleting file:', error);
+			// }
 		}
 
 		if (fileToRemove.previewUrl && fileToRemove.previewUrl.startsWith('blob:')) {
